@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import ProductCard from '@/components/ProductCard';
 import { mockProducts } from '@/data/mockData';
-import { Product, ProductCategory, ProductStatus, TransactionType } from '@/types/surplus';
+import { Product, ProductCategory, ProductStatus, TransactionType } from '@/types';
 import { Search, Filter, MapPin, Package, Calendar, Building, Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 

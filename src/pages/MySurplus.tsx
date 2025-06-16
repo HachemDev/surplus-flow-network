@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,7 @@ import {
   Search
 } from 'lucide-react';
 import { mockProducts } from '@/data/mockData';
-import { Product, ProductCategory, ProductStatus } from '@/types/surplus';
+import { Product, ProductCategory, ProductStatus } from '@/types';
 import { toast } from 'sonner';
 
 const MySurplus = () => {
@@ -343,7 +342,7 @@ const MySurplus = () => {
               <Card key={product.id} className="card-hover border-0 shadow-sm bg-card/50 backdrop-blur-sm">
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
                   <img
-                    src={product.imageUrl || '/placeholder.svg'}
+                    src={product.images[0] || '/placeholder.svg'}
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
