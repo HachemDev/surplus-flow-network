@@ -16,6 +16,8 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -27,10 +29,6 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
 
     try {
       await login(email, password);
@@ -78,14 +76,11 @@ const Auth = () => {
     }
   ];
 
-  const fillDemoAccount = (email: string, password: string) => {
-    const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
-    const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
-    
-    if (emailInput && passwordInput) {
-      emailInput.value = email;
-      passwordInput.value = password;
-    }
+  const fillDemoAccount = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setActiveTab('login');
+    toast.success('Compte démo sélectionné ! Cliquez sur "Se connecter"');
   };
 
   return (
@@ -174,6 +169,8 @@ const Auth = () => {
                           name="email"
                           type="email"
                           placeholder="votre@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           required
                           disabled={isLoading}
                         />
@@ -187,6 +184,8 @@ const Auth = () => {
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                             disabled={isLoading}
                           />
@@ -234,11 +233,8 @@ const Auth = () => {
                         return (
                           <Card
                             key={account.email}
-                            className="cursor-pointer hover:shadow-md transition-shadow"
-                            onClick={() => {
-                              fillDemoAccount(account.email, account.password);
-                              setActiveTab('login');
-                            }}
+                            className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/50"
+                            onClick={() => fillDemoAccount(account.email, account.password)}
                           >
                             <CardContent className="p-4">
                               <div className="flex items-center gap-3">
@@ -257,6 +253,12 @@ const Auth = () => {
                           </Card>
                         );
                       })}
+                    </div>
+                    
+                    <div className="text-center mt-4">
+                      <p className="text-xs text-muted-foreground">
+                        Cliquez sur un compte pour le sélectionner automatiquement
+                      </p>
                     </div>
                   </TabsContent>
                 </Tabs>
