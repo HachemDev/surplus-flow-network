@@ -20,7 +20,7 @@ import {
   AlertTriangle,
   CheckCircle,
   X,
-  MarkEmailRead
+  Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -179,7 +179,7 @@ const NotificationCenter = () => {
                 onClick={markAllAsRead}
                 className="text-xs"
               >
-                <MarkEmailRead className="h-4 w-4 mr-1" />
+                <Mail className="h-4 w-4 mr-1" />
                 Tout marquer lu
               </Button>
             )}
