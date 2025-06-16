@@ -1,15 +1,7 @@
 
-import { useState } from 'react';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -18,164 +10,204 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import NotificationCenter from './NotificationCenter';
 import { 
   Recycle, 
-  Search, 
-  Plus, 
   User, 
   Settings, 
   LogOut, 
   Building,
-  BarChart3,
-  Menu,
-  X
+  Plus,
+  HelpCircle
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import NotificationCenter from './NotificationCenter';
+import { toast } from 'sonner';
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
+  const { currentUser, currentCompany, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const isActive = (path: string) => location.pathname === path;
+  const handleLogout = () => {
+    logout();
+    toast.success('Déconnexion réussie');
+    navigate('/auth');
+  };
 
-  const navigation = [
-    { name: 'Accueil', href: '/', icon: Building },
-    { name: 'Marketplace', href: '/marketplace', icon: Search },
-    { name: 'Mes Surplus', href: '/my-surplus', icon: Plus },
-    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-  ];
+  const getInitials = () => {
+    if (currentUser) {
+      return `${currentUser.firstName[0]}${currentUser.lastName[0]}`.toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getRoleColor = () => {
+    switch (currentUser?.role) {
+      case 'ADMIN':
+        return 'bg-purple-500';
+      case 'COMPANY':
+        return 'bg-blue-500';
+      case 'ASSOCIATION':
+        return 'bg-red-500';
+      case 'ENTREPRENEUR':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/dashboard" className="flex items-center space-x-3">
             <div className="relative">
               <Recycle className="h-8 w-8 text-primary" />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-pulse" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Surplus360
-            </span>
+            <div>
+              <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Surplus360
+              </span>
+              <div className="text-xs text-muted-foreground">
+                Plateforme B2B
+              </div>
+            </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
-                    isActive(item.href)
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Center - Quick Stats */}
+          {currentCompany && (
+            <div className="hidden md:flex items-center gap-6 text-sm">
+              <div className="text-center">
+                <div className="font-semibold text-primary">{currentCompany.stats.totalSurplus}</div>
+                <div className="text-xs text-muted-foreground">Surplus</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-green-600">{currentCompany.stats.co2Saved}kg</div>
+                <div className="text-xs text-muted-foreground">CO₂ économisé</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-blue-600">{currentCompany.rseScore}/100</div>
+                <div className="text-xs text-muted-foreground">Score RSE</div>
+              </div>
+            </div>
+          )}
 
           {/* Right Section */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             {/* Notifications */}
             <NotificationCenter />
 
-            {/* Quick Add Button */}
-            <Button size="sm" className="hidden sm:flex bg-primary hover:bg-primary/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter Surplus
+            {/* Quick Actions */}
+            {(currentUser?.role === 'COMPANY' || currentUser?.role === 'ADMIN') && (
+              <Button 
+                size="sm" 
+                className="hidden sm:flex bg-primary hover:bg-primary/90"
+                onClick={() => navigate('/my-surplus')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau Surplus
+              </Button>
+            )}
+
+            {/* Help */}
+            <Button variant="ghost" size="sm">
+              <HelpCircle className="h-4 w-4" />
             </Button>
 
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg" alt="User" />
-                    <AvatarFallback>U</AvatarFallback>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={currentUser?.avatar} alt={currentUser?.firstName} />
+                    <AvatarFallback className={getRoleColor()}>
+                      {getInitials()}
+                    </AvatarFallback>
                   </Avatar>
+                  {currentCompany?.verified && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                    </div>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">Utilisateur Demo</p>
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      demo@surplus360.com
-                    </p>
+              
+              <DropdownMenuContent className="w-80" align="end" forceMount>
+                {/* User Info */}
+                <div className="p-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={currentUser?.avatar} alt={currentUser?.firstName} />
+                      <AvatarFallback className={getRoleColor()}>
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {currentUser?.firstName} {currentUser?.lastName}
+                      </div>
+                      <div className="text-sm text-muted-foreground">{currentUser?.email}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {currentUser?.role?.replace('_', ' ')}
+                        </Badge>
+                        {currentUser?.isVerified && (
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                            Vérifié
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
+                  
+                  {currentCompany && (
+                    <div className="mt-3 p-2 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{currentCompany.name}</span>
+                        {currentCompany.verified && (
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                            Certifié
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {currentCompany.industry} • {currentCompany.location}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Paramètres</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Déconnexion</span>
-                </DropdownMenuItem>
+
+                {/* Menu Items */}
+                <div className="p-1">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Mon Profil</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => navigate('/company')}>
+                    <Building className="mr-2 h-4 w-4" />
+                    <span>Mon Entreprise</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => navigate('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Paramètres</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Déconnexion</span>
+                  </DropdownMenuItem>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t bg-background/95 backdrop-blur">
-            <nav className="px-2 pt-2 pb-4 space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                      isActive(item.href)
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-              <div className="pt-2">
-                <Button className="w-full justify-start bg-primary hover:bg-primary/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter Surplus
-                </Button>
-              </div>
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );
