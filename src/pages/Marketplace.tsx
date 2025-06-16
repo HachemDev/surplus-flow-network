@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -257,7 +256,7 @@ const Marketplace = () => {
                 {/* Image */}
                 <div className="aspect-video overflow-hidden rounded-lg">
                   <img
-                    src={selectedProduct.imageUrl || '/placeholder.svg'}
+                    src={selectedProduct.images[0] || '/placeholder.svg'}
                     alt={selectedProduct.title}
                     className="w-full h-full object-cover"
                   />
