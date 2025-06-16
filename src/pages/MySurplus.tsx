@@ -1,38 +1,43 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { 
+import { Label } from '@/components/ui/label';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Header from '@/components/Header';
-import { 
-  Plus, 
-  Package, 
-  Edit, 
-  Trash2, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Plus,
+  Package,
+  Edit,
+  Trash2,
   Eye,
+  MoreHorizontal,
+  Upload,
   MapPin,
   Calendar,
-  Building,
-  Filter,
+  TrendingUp,
+  Users,
   Search
 } from 'lucide-react';
 import { mockProducts } from '@/data/mockData';
@@ -40,24 +45,16 @@ import { Product, ProductCategory, ProductStatus } from '@/types';
 import { toast } from 'sonner';
 
 const MySurplus = () => {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [newProduct, setNewProduct] = useState({
-    title: '',
-    description: '',
-    category: '',
-    quantity: '',
-    unit: '',
-    estimatedValue: '',
-    location: '',
-    expirationDate: ''
-  });
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // Filter user's products (for demo, showing all mock products)
-  const userProducts = mockProducts.filter(product => {
-    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Mock data pour l'utilisateur connecté
+  const userProducts = mockProducts.filter(p => p.companyId === '1'); // EcoTech Solutions
+
+  const filteredProducts = userProducts.filter(product => {
+    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -65,367 +62,411 @@ const MySurplus = () => {
   const getStatusColor = (status: ProductStatus) => {
     switch (status) {
       case ProductStatus.AVAILABLE:
-        return 'bg-green-500/10 text-green-700 border-green-200';
+        return 'bg-green-100 text-green-800';
       case ProductStatus.RESERVED:
-        return 'bg-orange-500/10 text-orange-700 border-orange-200';
-      case ProductStatus.IN_PROGRESS:
-        return 'bg-blue-500/10 text-blue-700 border-blue-200';
+        return 'bg-yellow-100 text-yellow-800';
+      case ProductStatus.SOLD:
+        return 'bg-blue-100 text-blue-800';
+      case ProductStatus.EXPIRED:
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-500/10 text-gray-700 border-gray-200';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusText = (status: ProductStatus) => {
+  const getStatusLabel = (status: ProductStatus) => {
     switch (status) {
       case ProductStatus.AVAILABLE:
         return 'Disponible';
       case ProductStatus.RESERVED:
         return 'Réservé';
-      case ProductStatus.IN_PROGRESS:
-        return 'En cours';
+      case ProductStatus.SOLD:
+        return 'Vendu';
+      case ProductStatus.EXPIRED:
+        return 'Expiré';
       default:
-        return 'Complété';
+        return status;
     }
-  };
-
-  const formatPrice = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(value);
   };
 
   const handleAddProduct = () => {
-    // Basic validation
-    if (!newProduct.title || !newProduct.category || !newProduct.quantity) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
+    // Logique d'ajout de produit
+    toast.success('Produit ajouté avec succès !');
+    setIsAddDialogOpen(false);
+  };
 
-    console.log('Adding new product:', newProduct);
-    toast.success('Surplus ajouté avec succès !');
-    setIsAddModalOpen(false);
-    setNewProduct({
-      title: '',
-      description: '',
-      category: '',
-      quantity: '',
-      unit: '',
-      estimatedValue: '',
-      location: '',
-      expirationDate: ''
-    });
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
   };
 
   const handleDeleteProduct = (productId: string) => {
-    console.log('Deleting product:', productId);
-    toast.success('Surplus supprimé');
+    // Logique de suppression
+    toast.success('Produit supprimé avec succès !');
   };
 
-  const handleEditProduct = (productId: string) => {
-    console.log('Editing product:', productId);
-    toast.info('Fonction d\'édition en développement');
-  };
-
-  const stats = [
-    {
-      title: 'Total Surplus',
-      value: userProducts.length,
-      description: 'Surplus publiés',
-      color: 'text-blue-600'
-    },
-    {
-      title: 'Disponibles',
-      value: userProducts.filter(p => p.status === ProductStatus.AVAILABLE).length,
-      description: 'Prêts à être récupérés',
-      color: 'text-green-600'
-    },
-    {
-      title: 'En cours',
-      value: userProducts.filter(p => p.status === ProductStatus.IN_PROGRESS).length,
-      description: 'Transactions actives',
-      color: 'text-orange-600'
-    },
-    {
-      title: 'Valeur totale',
-      value: formatPrice(userProducts.reduce((sum, p) => sum + p.estimatedValue, 0)),
-      description: 'Estimée',
-      color: 'text-purple-600'
-    }
+  const categories = [
+    { value: ProductCategory.ELECTRONICS, label: 'Électronique' },
+    { value: ProductCategory.FURNITURE, label: 'Mobilier' },
+    { value: ProductCategory.TEXTILE, label: 'Textile' },
+    { value: ProductCategory.OFFICE_EQUIPMENT, label: 'Équipement bureau' },
+    { value: ProductCategory.CONSTRUCTION_MATERIALS, label: 'Matériaux construction' },
+    { value: ProductCategory.FOOD, label: 'Alimentaire' },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Mes Surplus</h1>
-            <p className="text-muted-foreground">
-              Gérez vos surplus et suivez leur statut
-            </p>
-          </div>
-          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter un surplus
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Ajouter un nouveau surplus</DialogTitle>
-                <DialogDescription>
-                  Remplissez les informations pour publier votre surplus sur la marketplace
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Titre *</Label>
-                  <Input
-                    id="title"
-                    placeholder="Ex: Ordinateurs portables Dell..."
-                    value={newProduct.title}
-                    onChange={(e) => setNewProduct({...newProduct, title: e.target.value})}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="category">Catégorie *</Label>
-                  <Select 
-                    value={newProduct.category} 
-                    onValueChange={(value) => setNewProduct({...newProduct, category: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(ProductCategory).map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category.replace('_', ' ')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantité *</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    placeholder="Ex: 15"
-                    value={newProduct.quantity}
-                    onChange={(e) => setNewProduct({...newProduct, quantity: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="unit">Unité</Label>
-                  <Input
-                    id="unit"
-                    placeholder="Ex: pièces, kg, lots..."
-                    value={newProduct.unit}
-                    onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="estimatedValue">Valeur estimée (€)</Label>
-                  <Input
-                    id="estimatedValue"
-                    type="number"
-                    placeholder="Ex: 1500"
-                    value={newProduct.estimatedValue}
-                    onChange={(e) => setNewProduct({...newProduct, estimatedValue: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location">Localisation</Label>
-                  <Input
-                    id="location"
-                    placeholder="Ex: Paris, France"
-                    value={newProduct.location}
-                    onChange={(e) => setNewProduct({...newProduct, location: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="expirationDate">Date d'expiration</Label>
-                  <Input
-                    id="expirationDate"
-                    type="date"
-                    value={newProduct.expirationDate}
-                    onChange={(e) => setNewProduct({...newProduct, expirationDate: e.target.value})}
-                  />
-                </div>
+    <div className="space-y-6">
+      {/* Header avec statistiques */}
+      <div className="grid md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total surplus</p>
+                <p className="text-2xl font-bold">{userProducts.length}</p>
               </div>
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Décrivez votre surplus en détail..."
-                  rows={3}
-                  value={newProduct.description}
-                  onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                />
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
-                  Annuler
-                </Button>
-                <Button onClick={handleAddProduct}>
-                  Publier le surplus
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                <div className="text-sm font-medium text-muted-foreground mb-1">
-                  {stat.title}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Disponibles</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {userProducts.filter(p => p.status === ProductStatus.AVAILABLE).length}
                 </p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Vues totales</p>
+                <p className="text-2xl font-bold">
+                  {userProducts.reduce((acc, p) => acc + (p.views || 0), 0)}
+                </p>
+              </div>
+              <Eye className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Intérêts</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {userProducts.reduce((acc, p) => acc + (p.interests || 0), 0)}
+                </p>
+              </div>
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Header principal */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Mes surplus</h1>
+          <p className="text-muted-foreground">
+            Gérez vos surplus et suivez leurs performances
+          </p>
+        </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter un surplus
+            </Button>
+          </DialogTrigger>
+        </Dialog>
+      </div>
+
+      {/* Filtres */}
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un surplus..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filtrer par statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value={ProductStatus.AVAILABLE}>Disponible</SelectItem>
+            <SelectItem value={ProductStatus.RESERVED}>Réservé</SelectItem>
+            <SelectItem value={ProductStatus.SOLD}>Vendu</SelectItem>
+            <SelectItem value={ProductStatus.EXPIRED}>Expiré</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Liste des produits */}
+      {filteredProducts.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">
+              {searchTerm ? 'Aucun surplus trouvé' : 'Aucun surplus publié'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm 
+                ? 'Essayez de modifier vos critères de recherche.'
+                : 'Commencez par publier votre premier surplus pour le partager avec la communauté.'
+              }
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Publier mon premier surplus
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product) => (
+            <Card key={product.id} className="card-hover border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+              <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                <img
+                  src={product.images[0] || '/placeholder.svg'}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 left-2">
+                  <Badge className={getStatusColor(product.status)}>
+                    {getStatusLabel(product.status)}
+                  </Badge>
+                </div>
+                <div className="absolute top-2 right-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="secondary" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleEditProduct(product)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Modifier
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Voir les détails
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteProduct(product.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Supprimer
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              <CardHeader>
+                <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>
+                <CardDescription className="line-clamp-2">
+                  {product.description}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {/* Informations produit */}
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Quantité:</span>
+                    <span>{product.quantity} {product.unit}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Prix:</span>
+                    <span className="font-bold text-primary">
+                      {product.salePrice === 0 ? 'Gratuit' : `${product.salePrice}€`}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Catégorie:</span>
+                    <span>{product.category}</span>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Statistiques */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="font-bold text-blue-600">{product.views || 0}</div>
+                    <div className="text-muted-foreground">Vues</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-green-600">{product.interests || 0}</div>
+                    <div className="text-muted-foreground">Intérêts</div>
+                  </div>
+                </div>
+
+                {/* Localisation et date */}
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3 w-3" />
+                    <span>{product.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3" />
+                    <span>Publié le {new Date(product.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {product.expirationDate && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3" />
+                      <span>Expire le {new Date(product.expirationDate).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
+      )}
 
-        {/* Filters */}
-        <Card className="mb-6 border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher dans mes surplus..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrer par statut" />
+      {/* Dialog d'ajout de produit */}
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Ajouter un nouveau surplus</DialogTitle>
+          <DialogDescription>
+            Remplissez les informations pour publier votre surplus
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Titre */}
+          <div>
+            <Label htmlFor="title">Titre du surplus *</Label>
+            <Input id="title" placeholder="Ex: Ordinateurs portables Dell reconditionnés" />
+          </div>
+
+          {/* Description */}
+          <div>
+            <Label htmlFor="description">Description *</Label>
+            <Textarea 
+              id="description" 
+              placeholder="Décrivez en détail votre surplus, son état, ses caractéristiques..."
+              rows={4}
+            />
+          </div>
+
+          {/* Catégorie et quantité */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Catégorie *</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une catégorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  {Object.values(ProductStatus).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {getStatusText(status)}
+                  {categories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Products List */}
-        {userProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userProducts.map((product) => (
-              <Card key={product.id} className="card-hover border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-                <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                  <img
-                    src={product.images[0] || '/placeholder.svg'}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <Badge className={getStatusColor(product.status)}>
-                      {getStatusText(product.status)}
-                    </Badge>
-                  </div>
-                </div>
-                
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg line-clamp-1">{product.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {product.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Quantité</span>
-                    <span className="font-medium">{product.quantity} {product.unit}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Valeur estimée</span>
-                    <span className="font-semibold text-primary">
-                      {formatPrice(product.estimatedValue)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{product.location}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>Publié le {new Date(product.createdAt).toLocaleDateString('fr-FR')}</span>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="w-4 h-4 mr-2" />
-                      Voir
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleEditProduct(product.id)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDeleteProduct(product.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            
+            <div>
+              <Label htmlFor="quantity">Quantité *</Label>
+              <div className="flex gap-2">
+                <Input id="quantity" type="number" placeholder="10" />
+                <Select>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Unité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pieces">pièces</SelectItem>
+                    <SelectItem value="kg">kg</SelectItem>
+                    <SelectItem value="m2">m²</SelectItem>
+                    <SelectItem value="litres">litres</SelectItem>
+                    <SelectItem value="cartons">cartons</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Aucun surplus trouvé</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Aucun surplus ne correspond à vos critères de recherche.'
-                : 'Vous n\'avez pas encore publié de surplus.'
-              }
-            </p>
-            <Button onClick={() => {
-              setSearchTerm('');
-              setStatusFilter('all');
-            }}>
-              {searchTerm || statusFilter !== 'all' ? 'Réinitialiser les filtres' : 'Ajouter votre premier surplus'}
-            </Button>
+
+          {/* Prix */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="estimatedValue">Valeur estimée (€)</Label>
+              <Input id="estimatedValue" type="number" placeholder="5000" />
+            </div>
+            <div>
+              <Label htmlFor="salePrice">Prix de vente (€)</Label>
+              <Input id="salePrice" type="number" placeholder="0 pour un don" />
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* Localisation */}
+          <div>
+            <Label htmlFor="location">Localisation *</Label>
+            <Input id="location" placeholder="Ex: Paris, France" />
+          </div>
+
+          {/* Date d'expiration */}
+          <div>
+            <Label htmlFor="expiration">Date d'expiration (optionnel)</Label>
+            <Input id="expiration" type="date" />
+          </div>
+
+          {/* Instructions de récupération */}
+          <div>
+            <Label htmlFor="pickup">Instructions de récupération</Label>
+            <Textarea 
+              id="pickup" 
+              placeholder="Indiquez les modalités de récupération (horaires, accès, équipe nécessaire...)"
+              rows={3}
+            />
+          </div>
+
+          {/* Images */}
+          <div>
+            <Label>Images du produit</Label>
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+              <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
+                Cliquez pour ajouter des images ou glissez-déposez
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                PNG, JPG jusqu'à 10MB (max 5 images)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            Annuler
+          </Button>
+          <Button onClick={handleAddProduct}>
+            Publier le surplus
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </div>
   );
 };
