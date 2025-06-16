@@ -65,9 +65,9 @@ const MySurplus = () => {
         return 'bg-green-100 text-green-800';
       case ProductStatus.RESERVED:
         return 'bg-yellow-100 text-yellow-800';
-      case ProductStatus.SOLD:
+      case ProductStatus.COMPLETED:
         return 'bg-blue-100 text-blue-800';
-      case ProductStatus.EXPIRED:
+      case ProductStatus.IN_PROGRESS:
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -80,10 +80,10 @@ const MySurplus = () => {
         return 'Disponible';
       case ProductStatus.RESERVED:
         return 'Réservé';
-      case ProductStatus.SOLD:
+      case ProductStatus.COMPLETED:
         return 'Vendu';
-      case ProductStatus.EXPIRED:
-        return 'Expiré';
+      case ProductStatus.IN_PROGRESS:
+        return 'En cours';
       default:
         return status;
     }
@@ -209,8 +209,8 @@ const MySurplus = () => {
             <SelectItem value="all">Tous les statuts</SelectItem>
             <SelectItem value={ProductStatus.AVAILABLE}>Disponible</SelectItem>
             <SelectItem value={ProductStatus.RESERVED}>Réservé</SelectItem>
-            <SelectItem value={ProductStatus.SOLD}>Vendu</SelectItem>
-            <SelectItem value={ProductStatus.EXPIRED}>Expiré</SelectItem>
+            <SelectItem value={ProductStatus.COMPLETED}>Vendu</SelectItem>
+            <SelectItem value={ProductStatus.IN_PROGRESS}>En cours</SelectItem>
           </SelectContent>
         </Select>
       </div>
