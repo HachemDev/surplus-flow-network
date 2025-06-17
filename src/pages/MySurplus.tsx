@@ -187,6 +187,127 @@ const MySurplus = () => {
               Ajouter un surplus
             </Button>
           </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Ajouter un nouveau surplus</DialogTitle>
+              <DialogDescription>
+                Remplissez les informations pour publier votre surplus
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {/* Titre */}
+              <div>
+                <Label htmlFor="title">Titre du surplus *</Label>
+                <Input id="title" placeholder="Ex: Ordinateurs portables Dell reconditionnés" />
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label htmlFor="description">Description *</Label>
+                <Textarea 
+                  id="description" 
+                  placeholder="Décrivez en détail votre surplus, son état, ses caractéristiques..."
+                  rows={4}
+                />
+              </div>
+
+              {/* Catégorie et quantité */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Catégorie *</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="quantity">Quantité *</Label>
+                  <div className="flex gap-2">
+                    <Input id="quantity" type="number" placeholder="10" />
+                    <Select>
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Unité" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pieces">pièces</SelectItem>
+                        <SelectItem value="kg">kg</SelectItem>
+                        <SelectItem value="m2">m²</SelectItem>
+                        <SelectItem value="litres">litres</SelectItem>
+                        <SelectItem value="cartons">cartons</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prix */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="estimatedValue">Valeur estimée (€)</Label>
+                  <Input id="estimatedValue" type="number" placeholder="5000" />
+                </div>
+                <div>
+                  <Label htmlFor="salePrice">Prix de vente (€)</Label>
+                  <Input id="salePrice" type="number" placeholder="0 pour un don" />
+                </div>
+              </div>
+
+              {/* Localisation */}
+              <div>
+                <Label htmlFor="location">Localisation *</Label>
+                <Input id="location" placeholder="Ex: Paris, France" />
+              </div>
+
+              {/* Date d'expiration */}
+              <div>
+                <Label htmlFor="expiration">Date d'expiration (optionnel)</Label>
+                <Input id="expiration" type="date" />
+              </div>
+
+              {/* Instructions de récupération */}
+              <div>
+                <Label htmlFor="pickup">Instructions de récupération</Label>
+                <Textarea 
+                  id="pickup" 
+                  placeholder="Indiquez les modalités de récupération (horaires, accès, équipe nécessaire...)"
+                  rows={3}
+                />
+              </div>
+
+              {/* Images */}
+              <div>
+                <Label>Images du produit</Label>
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                  <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    Cliquez pour ajouter des images ou glissez-déposez
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    PNG, JPG jusqu'à 10MB (max 5 images)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button onClick={handleAddProduct}>
+                Publier le surplus
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
       </div>
 
@@ -344,129 +465,6 @@ const MySurplus = () => {
           ))}
         </div>
       )}
-
-      {/* Dialog d'ajout de produit */}
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Ajouter un nouveau surplus</DialogTitle>
-          <DialogDescription>
-            Remplissez les informations pour publier votre surplus
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Titre */}
-          <div>
-            <Label htmlFor="title">Titre du surplus *</Label>
-            <Input id="title" placeholder="Ex: Ordinateurs portables Dell reconditionnés" />
-          </div>
-
-          {/* Description */}
-          <div>
-            <Label htmlFor="description">Description *</Label>
-            <Textarea 
-              id="description" 
-              placeholder="Décrivez en détail votre surplus, son état, ses caractéristiques..."
-              rows={4}
-            />
-          </div>
-
-          {/* Catégorie et quantité */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Catégorie *</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir une catégorie" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="quantity">Quantité *</Label>
-              <div className="flex gap-2">
-                <Input id="quantity" type="number" placeholder="10" />
-                <Select>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Unité" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pieces">pièces</SelectItem>
-                    <SelectItem value="kg">kg</SelectItem>
-                    <SelectItem value="m2">m²</SelectItem>
-                    <SelectItem value="litres">litres</SelectItem>
-                    <SelectItem value="cartons">cartons</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Prix */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="estimatedValue">Valeur estimée (€)</Label>
-              <Input id="estimatedValue" type="number" placeholder="5000" />
-            </div>
-            <div>
-              <Label htmlFor="salePrice">Prix de vente (€)</Label>
-              <Input id="salePrice" type="number" placeholder="0 pour un don" />
-            </div>
-          </div>
-
-          {/* Localisation */}
-          <div>
-            <Label htmlFor="location">Localisation *</Label>
-            <Input id="location" placeholder="Ex: Paris, France" />
-          </div>
-
-          {/* Date d'expiration */}
-          <div>
-            <Label htmlFor="expiration">Date d'expiration (optionnel)</Label>
-            <Input id="expiration" type="date" />
-          </div>
-
-          {/* Instructions de récupération */}
-          <div>
-            <Label htmlFor="pickup">Instructions de récupération</Label>
-            <Textarea 
-              id="pickup" 
-              placeholder="Indiquez les modalités de récupération (horaires, accès, équipe nécessaire...)"
-              rows={3}
-            />
-          </div>
-
-          {/* Images */}
-          <div>
-            <Label>Images du produit</Label>
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-              <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Cliquez pour ajouter des images ou glissez-déposez
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PNG, JPG jusqu'à 10MB (max 5 images)
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-            Annuler
-          </Button>
-          <Button onClick={handleAddProduct}>
-            Publier le surplus
-          </Button>
-        </DialogFooter>
-      </DialogContent>
     </div>
   );
 };
