@@ -38,6 +38,8 @@ export const useProducts = () => {
       pickupInstructions: productData.pickup,
       views: 0,
       interests: 0,
+      tags: [],
+      condition: 'GOOD',
     };
 
     setProducts(prev => [newProduct, ...prev]);
