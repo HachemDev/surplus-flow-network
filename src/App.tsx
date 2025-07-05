@@ -9,6 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Pages
 import Auth from '@/pages/Auth';
@@ -29,82 +30,85 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Protected routes with layout */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/marketplace" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Marketplace />
-                  </Layout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/my-surplus" element={
-                <ProtectedRoute requiredRoles={[UserRole.COMPANY, UserRole.ADMIN]}>
-                  <Layout>
-                    <MySurplus />
-                  </Layout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/tracking" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Tracking />
-                  </Layout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Profile />
-                  </Layout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/company" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Company />
-                  </Layout>
-                </ProtectedRoute>
-              } />
-              
-              {/* Redirects */}
-              <Route path="/login" element={<Navigate to="/auth" replace />} />
-              
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Protected routes with layout */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/marketplace" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Marketplace />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/my-surplus" element={
+                  <ProtectedRoute requiredRoles={[UserRole.COMPANY, UserRole.ADMIN]}>
+                    <Layout>
+                      <MySurplus />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/tracking" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Tracking />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Profile />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/company" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Company />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Redirects */}
+                <Route path="/login" element={<Navigate to="/auth" replace />} />
+                
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
