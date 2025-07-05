@@ -24,26 +24,42 @@ import { AUTHORITIES } from '../config/constants';
 
 const AppRoutes: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, sessionHasBeenFetched } = useAppSelector(state => state.authentication);
+  const { isAuthenticated, sessionHasBeenFetched, loading } = useAppSelector(state => state.authentication);
 
   useEffect(() => {
+    // Always attempt to fetch session if we haven't tried yet
     if (!sessionHasBeenFetched) {
       const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
       if (token) {
+        console.log('Token found, fetching session...');
         dispatch(getSession());
+      } else {
+        console.log('No token found, skipping session fetch');
+        // If no token, we still need to mark session as fetched to proceed
+        // This will be handled by the updated reducer
       }
     }
   }, [dispatch, sessionHasBeenFetched]);
 
-  if (!sessionHasBeenFetched) {
+  // Show loading only when we're actively fetching session
+  if (!sessionHasBeenFetched && loading) {
     return <LoadingSpinner message="Initialisation de l'application..." />;
+  }
+
+  // If no token exists and session hasn't been fetched yet, mark as complete
+  if (!sessionHasBeenFetched) {
+    return <LoadingSpinner message="Finalisation..." />;
   }
 
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+      } />
+      <Route path="/register" element={
+        isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />
+      } />
       
       {/* Protected routes with layout */}
       <Route path="/dashboard" element={
@@ -115,9 +131,9 @@ const AppRoutes: React.FC = () => {
         </PrivateRoute>
       } />
       
-      {/* Redirects */}
+      {/* Root redirect */}
       <Route path="/" element={
-        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
       } />
       
       {/* 404 fallback */}
@@ -125,7 +141,8 @@ const AppRoutes: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">404</h1>
-            <p className="text-muted-foreground">Page non trouvée</p>
+            <p className="text-muted-foreground mb-4">Page non trouvée</p>
+            <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
           </div>
         </div>
       } />

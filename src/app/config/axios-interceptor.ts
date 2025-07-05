@@ -8,7 +8,8 @@ axios.defaults.baseURL = API_URL;
 
 const setupAxiosInterceptors = (onUnauthenticated: () => void) => {
   const onRequestSuccess = (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('authToken');
+    // Check both storage locations for token
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -20,6 +21,7 @@ const setupAxiosInterceptors = (onUnauthenticated: () => void) => {
   const onResponseError = (err: any) => {
     const status = err.status || err.response?.status;
     if (status === 403 || status === 401) {
+      console.log('Authentication error detected, clearing session');
       onUnauthenticated();
     }
     return Promise.reject(err);

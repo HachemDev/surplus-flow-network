@@ -28,10 +28,16 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: false,
   user: null,
-  token: localStorage.getItem('authToken'),
+  token: localStorage.getItem('authToken') || sessionStorage.getItem('authToken'),
   error: null,
   sessionHasBeenFetched: false,
 };
+
+// Check if we should mark session as fetched immediately
+if (!initialState.token) {
+  // If no token exists, mark session as fetched to prevent infinite loading
+  initialState.sessionHasBeenFetched = true;
+}
 
 // Async thunks
 export const authenticate = createAsyncThunk(
@@ -92,9 +98,14 @@ const authSlice = createSlice({
       state.token = null;
       state.error = null;
       state.sessionHasBeenFetched = true;
+      localStorage.removeItem('authToken');
+      sessionStorage.removeItem('authToken');
     },
     clearAuthError: (state) => {
       state.error = null;
+    },
+    markSessionFetched: (state) => {
+      state.sessionHasBeenFetched = true;
     },
   },
   extraReducers: (builder) => {
@@ -145,6 +156,8 @@ const authSlice = createSlice({
         localStorage.removeItem('authToken');
         sessionStorage.removeItem('authToken');
         state.token = null;
+        state.isAuthenticated = false;
+        state.user = null;
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
@@ -156,5 +169,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuth, clearAuthError } = authSlice.actions;
+export const { clearAuth, clearAuthError, markSessionFetched } = authSlice.actions;
 export default authSlice.reducer;
