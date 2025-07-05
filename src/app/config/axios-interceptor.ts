@@ -10,7 +10,6 @@ const setupAxiosInterceptors = (onUnauthenticated: () => void) => {
   const onRequestSuccess = (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
