@@ -91,6 +91,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = null;
+      state.sessionHasBeenFetched = true;
     },
     clearAuthError: (state) => {
       state.error = null;
@@ -113,6 +114,7 @@ const authSlice = createSlice({
       .addCase(authenticate.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Authentication failed';
+        state.sessionHasBeenFetched = true;
       })
       // Register
       .addCase(register.pending, (state) => {
@@ -127,19 +129,29 @@ const authSlice = createSlice({
         state.error = action.error.message || 'Registration failed';
       })
       // Get Session
+      .addCase(getSession.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(getSession.fulfilled, (state, action) => {
+        state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload;
         state.sessionHasBeenFetched = true;
       })
       .addCase(getSession.rejected, (state) => {
+        state.loading = false;
         state.sessionHasBeenFetched = true;
+        // Clear token if session fetch fails
+        localStorage.removeItem('authToken');
+        sessionStorage.removeItem('authToken');
+        state.token = null;
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
+        state.sessionHasBeenFetched = true;
       });
   },
 });
