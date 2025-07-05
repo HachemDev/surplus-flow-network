@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -53,10 +52,17 @@ const RegisterForm: React.FC = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      await dispatch(registerUser({
-        ...values,
+      // Ensure all required fields are present and properly typed
+      const userInfo = {
+        email: values.email,
+        password: values.password,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        companyName: values.companyName,
         role: values.role,
-      })).unwrap();
+      };
+      
+      await dispatch(registerUser(userInfo)).unwrap();
       
       toast.success('Inscription réussie ! Veuillez vous connecter.');
       navigate('/login');

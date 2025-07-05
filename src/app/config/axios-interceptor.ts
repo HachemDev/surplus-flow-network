@@ -1,5 +1,5 @@
 
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { API_URL } from './constants';
 
 const TIMEOUT = 1 * 60 * 1000;
@@ -7,7 +7,7 @@ axios.defaults.timeout = TIMEOUT;
 axios.defaults.baseURL = API_URL;
 
 const setupAxiosInterceptors = (onUnauthenticated: () => void) => {
-  const onRequestSuccess = (config: AxiosRequestConfig) => {
+  const onRequestSuccess = (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers = config.headers || {};

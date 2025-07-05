@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -42,7 +41,14 @@ const LoginForm: React.FC = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      await dispatch(authenticate(values)).unwrap();
+      // Ensure all required fields are present
+      const credentials = {
+        email: values.email,
+        password: values.password,
+        rememberMe: values.rememberMe,
+      };
+      
+      await dispatch(authenticate(credentials)).unwrap();
       toast.success(t('auth.loginSuccess'));
       
       const from = (location.state as any)?.from?.pathname || '/dashboard';
