@@ -1,29 +1,21 @@
 
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-import { AuthProvider } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import Layout from '@/components/Layout';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { store } from './app/shared/reducers';
+import setupAxiosInterceptors from './app/config/axios-interceptor';
+import { clearAuth } from './app/shared/reducers/authentication';
+import AppRoutes from './app/routes/AppRoutes';
+import ErrorBoundary from './app/shared/components/ErrorBoundary';
 
-// Pages
-import Auth from '@/pages/Auth';
-import Index from '@/pages/Index';
-import Dashboard from '@/pages/Dashboard';
-import Marketplace from '@/pages/Marketplace';
-import MySurplus from '@/pages/MySurplus';
-import Tracking from '@/pages/Tracking';
-import Profile from '@/pages/Profile';
-import Company from '@/pages/Company';
-import NotFound from '@/pages/NotFound';
-
-// Types
-import { UserRole } from '@/types';
+// Import i18n configuration
+import './app/config/translation';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,79 +27,41 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => {
+const clearAuthenticationAndReload = () => {
+  store.dispatch(clearAuth());
+  window.location.href = '/login';
+};
+
+// Setup axios interceptors
+setupAxiosInterceptors(clearAuthenticationAndReload);
+
+const App: React.FC = () => {
+  useEffect(() => {
+    // PWA update notification
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'SKIP_WAITING') {
+          window.location.reload();
+        }
+      });
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                
-                {/* Protected routes with layout */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/marketplace" element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Marketplace />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/my-surplus" element={
-                  <ProtectedRoute requiredRoles={[UserRole.COMPANY, UserRole.ADMIN]}>
-                    <Layout>
-                      <MySurplus />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/tracking" element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Tracking />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Profile />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/company" element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Company />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
-                
-                {/* Redirects */}
-                <Route path="/login" element={<Navigate to="/auth" replace />} />
-                
-                {/* 404 */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </Provider>
     </ErrorBoundary>
   );
 };
