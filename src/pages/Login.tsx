@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(username, password, rememberMe);
+      await login(username, password);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",

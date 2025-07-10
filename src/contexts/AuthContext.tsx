@@ -11,9 +11,14 @@ interface AuthContextType {
   logout: () => void;
   switchRole: (role: UserRole) => void;
   updateProfile: (data: Partial<User>) => void;
+  hasRole: (role: UserRole) => boolean;
+  hasAnyAuthority: (authorities: string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Export AuthContext for useAuth hook
+export { AuthContext };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -219,6 +224,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('surplus360_user', JSON.stringify(updatedUser));
   };
 
+  const hasRole = (role: UserRole): boolean => {
+    return currentUser?.role === role;
+  };
+
+  const hasAnyAuthority = (authorities: string[]): boolean => {
+    if (!currentUser) return false;
+    // For now, return true for authenticated users - this would be properly implemented with JWT authorities
+    return true;
+  };
+
   const value = {
     currentUser,
     currentCompany,
@@ -227,7 +242,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     switchRole,
-    updateProfile
+    updateProfile,
+    hasRole,
+    hasAnyAuthority
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
