@@ -1,22 +1,24 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRoles?: UserRole[];
+  requiredAuthorities?: string[];
   redirectTo?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requiredRoles = [],
-  redirectTo = '/auth'
+  requiredAuthorities = [],
+  redirectTo = '/login'
 }) => {
-  const { currentUser, isAuthenticated, isLoading } = useAuth();
+  const { currentUser, isAuthenticated, isLoading, hasRole, hasAnyAuthority } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -34,7 +36,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
+  // Check role-based access
   if (requiredRoles.length > 0 && currentUser && !requiredRoles.includes(currentUser.role)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold mb-4">Accès non autorisé</h2>
+          <p className="text-muted-foreground mb-4">
+            Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+          </p>
+          <Navigate to="/dashboard" replace />
+        </div>
+      </div>
+    );
+  }
+
+  // Check authority-based access
+  if (requiredAuthorities.length > 0 && !hasAnyAuthority(requiredAuthorities)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center p-8">
