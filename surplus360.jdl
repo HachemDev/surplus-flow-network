@@ -1,0 +1,420 @@
+// ===========================================
+// SURPLUS360 - JHipster Domain Language File
+// ===========================================
+// Compatible with the React frontend structure
+// Supports multilingual (fr, en, ar) and JWT authentication
+
+application {
+  config {
+    applicationType monolith
+    authenticationType jwt
+    baseName surplus360
+    buildTool maven
+    cacheProvider ehcache
+    clientFramework react
+    creationTimestamp 1609459200000
+    databaseType sql
+    devDatabaseType h2Disk
+    dtoSuffix DTO
+    enableHibernateCache true
+    enableSwaggerCodegen false
+    enableTranslation true
+    jhiPrefix jhi
+    languages [fr, en, ar]
+    nativeLanguage fr
+    packageName com.surplus360
+    prodDatabaseType postgresql
+    searchEngine false
+    serviceDiscoveryType false
+    skipClient true
+    skipServer false
+    testFrameworks [jest]
+    websocket spring-websocket
+    withAdminUi true
+  }
+  entities *
+}
+
+// ===========================================
+// ENUMS
+// ===========================================
+
+enum CompanyType {
+  BUSINESS,
+  ASSOCIATION,
+  STARTUP,
+  NGO,
+  COOPERATIVE
+}
+
+enum UserRole {
+  ADMIN,
+  COMPANY,
+  ASSOCIATION,
+  ENTREPRENEUR,
+  INDIVIDUAL
+}
+
+enum ProductCategory {
+  ELECTRONICS,
+  FURNITURE,
+  CLOTHING,
+  FOOD,
+  BOOKS,
+  OFFICE_SUPPLIES,
+  MEDICAL,
+  CONSTRUCTION,
+  AUTOMOTIVE,
+  OTHER
+}
+
+enum ProductCondition {
+  NEW,
+  LIKE_NEW,
+  GOOD,
+  FAIR,
+  POOR
+}
+
+enum ProductStatus {
+  AVAILABLE,
+  RESERVED,
+  DONATED,
+  SOLD,
+  EXPIRED,
+  DRAFT
+}
+
+enum RequestType {
+  DONATION,
+  PURCHASE
+}
+
+enum RequestStatus {
+  PENDING,
+  APPROVED,
+  REJECTED,
+  FULFILLED,
+  CANCELLED
+}
+
+enum TransactionType {
+  DONATION,
+  SALE,
+  PURCHASE,
+  REQUEST
+}
+
+enum TransactionStatus {
+  PENDING,
+  IN_PROGRESS,
+  COMPLETED,
+  CANCELLED,
+  REFUNDED
+}
+
+enum NotificationType {
+  INFO,
+  SUCCESS,
+  WARNING,
+  ERROR
+}
+
+enum NotificationStatus {
+  UNREAD,
+  READ,
+  ARCHIVED
+}
+
+// ===========================================
+// ENTITIES
+// ===========================================
+
+/**
+ * Company/Organization entity
+ * Represents businesses, associations, startups, etc.
+ */
+entity Company {
+  name String required maxlength(100)
+  type CompanyType required
+  industry String maxlength(50)
+  description TextBlob
+  website String maxlength(255)
+  phone String maxlength(20)
+  address TextBlob
+  city String maxlength(50)
+  postalCode String maxlength(10)
+  country String maxlength(50)
+  logo String maxlength(500)
+  rseScore Integer min(0) max(100)
+  verified Boolean
+  certifications TextBlob
+  createdAt Instant
+  updatedAt Instant
+}
+
+/**
+ * User Profile Extension
+ * Additional user information beyond JHipster's default User
+ */
+entity UserProfile {
+  firstName String maxlength(50)
+  lastName String maxlength(50)
+  phone String maxlength(20)
+  address TextBlob
+  city String maxlength(50)
+  postalCode String maxlength(10)
+  country String maxlength(50)
+  avatar String maxlength(500)
+  isVerified Boolean
+  role UserRole required
+  createdAt Instant
+  lastLogin Instant
+}
+
+/**
+ * Product/Surplus entity
+ * Represents items available for donation or sale
+ */
+entity Product {
+  title String required maxlength(100)
+  description TextBlob required
+  category ProductCategory required
+  condition ProductCondition required
+  status ProductStatus required
+  quantity Integer required min(1)
+  originalPrice BigDecimal min(0)
+  donationPrice BigDecimal min(0)
+  salePrice BigDecimal min(0)
+  location String maxlength(100)
+  availableFrom LocalDate
+  availableUntil LocalDate
+  images TextBlob
+  tags String maxlength(500)
+  weight Double min(0)
+  dimensions String maxlength(100)
+  pickupOnly Boolean
+  deliveryAvailable Boolean
+  deliveryRadius Integer min(0)
+  deliveryCost BigDecimal min(0)
+  createdAt Instant
+  updatedAt Instant
+  viewCount Integer
+  favoriteCount Integer
+}
+
+/**
+ * Request entity
+ * Represents donation or purchase requests from users/organizations
+ */
+entity Request {
+  type RequestType required
+  title String required maxlength(100)
+  description TextBlob required
+  category ProductCategory required
+  quantity Integer required min(1)
+  maxPrice BigDecimal min(0)
+  urgencyLevel Integer min(1) max(5)
+  location String maxlength(100)
+  deliveryRequired Boolean
+  status RequestStatus required
+  reason TextBlob
+  validUntil LocalDate
+  tags String maxlength(500)
+  createdAt Instant
+  updatedAt Instant
+}
+
+/**
+ * Transaction entity
+ * Tracks all transactions (donations, sales, purchases)
+ */
+entity Transaction {
+  type TransactionType required
+  status TransactionStatus required
+  quantity Integer required min(1)
+  unitPrice BigDecimal min(0)
+  totalAmount BigDecimal min(0)
+  deliveryMethod String maxlength(50)
+  deliveryAddress TextBlob
+  deliveryDate LocalDate
+  notes TextBlob
+  rating Integer min(1) max(5)
+  review TextBlob
+  createdAt Instant
+  completedAt Instant
+  cancelledAt Instant
+  refundedAt Instant
+}
+
+/**
+ * Notification entity
+ * System notifications for users
+ */
+entity Notification {
+  title String required maxlength(100)
+  message TextBlob required
+  type NotificationType required
+  status NotificationStatus required
+  data TextBlob
+  actionUrl String maxlength(500)
+  createdAt Instant
+  readAt Instant
+}
+
+/**
+ * Company Statistics
+ * Track environmental and social impact
+ */
+entity CompanyStats {
+  totalSurplus Integer
+  totalDonations Integer
+  totalSales Integer
+  co2Saved BigDecimal
+  wasteReduced BigDecimal
+  beneficiariesReached Integer
+  month Integer min(1) max(12)
+  year Integer min(2020)
+  createdAt Instant
+}
+
+/**
+ * Product Images
+ * Separate entity for multiple product images
+ */
+entity ProductImage {
+  imageUrl String required maxlength(500)
+  altText String maxlength(200)
+  isPrimary Boolean
+  sortOrder Integer
+  createdAt Instant
+}
+
+/**
+ * Favorites
+ * User favorite products
+ */
+entity Favorite {
+  createdAt Instant
+}
+
+/**
+ * Message entity
+ * Direct messaging between users
+ */
+entity Message {
+  subject String maxlength(100)
+  content TextBlob required
+  isRead Boolean
+  createdAt Instant
+  readAt Instant
+}
+
+// ===========================================
+// RELATIONSHIPS
+// ===========================================
+
+// User Profile relationships
+relationship OneToOne {
+  UserProfile{user(login)} to User with builtInEntity
+}
+
+// Company relationships
+relationship OneToMany {
+  Company{users} to UserProfile{company}
+  Company{products} to Product{company}
+  Company{requests} to Request{company}
+  Company{stats} to CompanyStats{company}
+}
+
+// Product relationships
+relationship ManyToOne {
+  Product{owner(login)} to User with builtInEntity
+}
+
+relationship OneToMany {
+  Product{images} to ProductImage{product}
+  Product{transactions} to Transaction{product}
+  Product{favorites} to Favorite{product}
+}
+
+// Request relationships
+relationship ManyToOne {
+  Request{requester(login)} to User with builtInEntity
+}
+
+relationship OneToMany {
+  Request{transactions} to Transaction{request}
+}
+
+// Transaction relationships
+relationship ManyToOne {
+  Transaction{buyer(login)} to User with builtInEntity
+  Transaction{seller(login)} to User with builtInEntity
+}
+
+// Notification relationships
+relationship ManyToOne {
+  Notification{user(login)} to User with builtInEntity
+}
+
+// Favorite relationships
+relationship ManyToOne {
+  Favorite{user(login)} to User with builtInEntity
+}
+
+// Message relationships
+relationship ManyToOne {
+  Message{sender(login)} to User with builtInEntity
+  Message{recipient(login)} to User with builtInEntity
+}
+
+// ===========================================
+// SERVICE LAYER & DTOs
+// ===========================================
+
+dto * with mapstruct
+
+service all with serviceImpl
+
+paginate all with pagination
+
+filter all
+
+// ===========================================
+// MICROSERVICE CONFIGURATION
+// ===========================================
+
+microservice all with surplus360
+
+// ===========================================
+// VALIDATION RULES
+// ===========================================
+
+// Additional validation can be added as needed
+// The @Pattern, @Size, @Min, @Max annotations are already included above
+
+// ===========================================
+// SEARCH CONFIGURATION
+// ===========================================
+
+search Product, Request, Company with elasticsearch
+
+// ===========================================
+// DEPLOYMENT CONFIGURATION
+// ===========================================
+
+deployment {
+  deploymentType docker-compose
+  appsFolders [surplus360]
+  dockerRepositoryName "surplus360"
+  monitoring no
+  serviceDiscoveryType consul
+}
+
+// ===========================================
+// ANGULAR/REACT CLIENT CONFIGURATION
+// ===========================================
+
+// Client-specific configurations
+// Pagination, filtering, and search are enabled above
