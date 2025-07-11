@@ -9,7 +9,7 @@ import Layout from '../shared/layout/Layout';
 import LoadingSpinner from '../shared/components/LoadingSpinner';
 
 // Page imports
-import LoginPage from '../modules/account/login/LoginPage';
+import LoginPage from '../../pages/auth/Login';
 import RegisterPage from '../modules/account/register/RegisterPage';
 import DashboardPage from '../modules/dashboard/DashboardPage';
 import ProductListPage from '../entities/product/ProductListPage';
