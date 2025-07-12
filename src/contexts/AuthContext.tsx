@@ -1,15 +1,17 @@
 import React, { createContext, ReactNode } from 'react';
-import { JhipsterUser, UserProfile } from '@/types/jhipster';
-import { useAuthStatus } from '@/hooks/api/useAuth';
+import { JhipsterUser, UserProfile, Company, UserRole } from '@/types/jhipster';
+import { useAuthStatus, useLogout } from '@/hooks/api/useAuth';
 
 interface AuthContextType {
   currentUser: JhipsterUser | null;
   profile: UserProfile | null;
+  currentCompany: Company | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   hasRole: (role: string) => boolean;
   hasAnyAuthority: (authorities: string[]) => boolean;
-  login: (credentials: { email: string; password: string; rememberMe?: boolean }) => Promise<void>;
+  logout: () => void;
+  updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -20,21 +22,27 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { currentUser, profile, isAuthenticated, isLoading, hasRole, hasAnyAuthority } = useAuthStatus();
+  const logoutMutation = useLogout();
 
-  // Placeholder login function - actual login logic should use the API
-  const login = async (credentials: { email: string; password: string; rememberMe?: boolean }) => {
-    // This will be handled by the useLogin hook in components
-    throw new Error('Use useLogin hook for authentication');
+  const logout = () => {
+    logoutMutation.mutate();
+  };
+
+  const updateProfile = async (profileData: Partial<UserProfile>) => {
+    // This will be implemented with API call
+    throw new Error('updateProfile not implemented yet');
   };
 
   const value: AuthContextType = {
     currentUser,
     profile,
+    currentCompany: profile?.company || null,
     isAuthenticated,
     isLoading,
     hasRole,
     hasAnyAuthority,
-    login,
+    logout,
+    updateProfile,
   };
 
   return (

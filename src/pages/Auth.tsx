@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+import { useLogin } from '@/hooks/api/useAuth';
 import { Recycle } from 'lucide-react';
 import { toast } from 'sonner';
 import LoginForm from '@/components/auth/LoginForm';
@@ -17,7 +17,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
-  const { login } = useAuth();
+  const loginMutation = useLogin();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -29,7 +29,11 @@ const Auth = () => {
     setError('');
 
     try {
-      await login(email, password);
+      await loginMutation.mutateAsync({
+        username: email,
+        password,
+        rememberMe: false
+      });
       toast.success('Connexion réussie !');
       navigate(from, { replace: true });
     } catch (err) {

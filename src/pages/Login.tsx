@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,8 @@ const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const loginMutation = useLogin();
   const { toast } = useToast();
   const location = useLocation();
   
@@ -30,17 +31,13 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(username, password);
-      toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté.",
+      await loginMutation.mutateAsync({
+        username,
+        password,
+        rememberMe
       });
     } catch (error) {
-      toast({
-        title: "Erreur de connexion",
-        description: "Nom d'utilisateur ou mot de passe incorrect.",
-        variant: "destructive",
-      });
+      // Error handling is done in the mutation
     } finally {
       setIsLoading(false);
     }

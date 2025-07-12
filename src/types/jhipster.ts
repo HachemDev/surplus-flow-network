@@ -102,6 +102,12 @@ export interface JhipsterUser {
   createdDate?: string;
   lastModifiedBy?: string;
   lastModifiedDate?: string;
+  // Additional properties for frontend compatibility
+  role?: UserRole;
+  avatar?: string;
+  companyId?: number;
+  isVerified?: boolean;
+  createdAt?: string; // Alias for createdDate
 }
 
 // Entity interfaces matching JDL exactly
@@ -335,3 +341,39 @@ export interface SearchCriteria {
   maxPrice?: number;
   searchTerm?: string;
 }
+
+// Helper functions for mapping data
+export const getUserRole = (user: JhipsterUser): UserRole => {
+  if (user.authorities.includes('ROLE_ADMIN')) return UserRole.ADMIN;
+  if (user.authorities.includes('ROLE_COMPANY')) return UserRole.COMPANY;
+  if (user.authorities.includes('ROLE_ASSOCIATION')) return UserRole.ASSOCIATION;
+  if (user.authorities.includes('ROLE_ENTREPRENEUR')) return UserRole.ENTREPRENEUR;
+  return UserRole.INDIVIDUAL;
+};
+
+export const mapJhipsterUser = (user: JhipsterUser): JhipsterUser => {
+  return {
+    ...user,
+    role: getUserRole(user),
+    isVerified: user.activated,
+    createdAt: user.createdDate || '',
+  };
+};
+
+export const getCompanyStats = (stats: CompanyStats[]): {
+  totalSurplus: number;
+  totalDonations: number;
+  co2Saved: number;
+  wasteReduced: number;
+} => {
+  if (!stats || stats.length === 0) {
+    return { totalSurplus: 0, totalDonations: 0, co2Saved: 0, wasteReduced: 0 };
+  }
+  
+  return stats.reduce((acc, stat) => ({
+    totalSurplus: acc.totalSurplus + (stat.totalSurplus || 0),
+    totalDonations: acc.totalDonations + (stat.totalDonations || 0),
+    co2Saved: acc.co2Saved + (stat.co2Saved || 0),
+    wasteReduced: acc.wasteReduced + (stat.wasteReduced || 0),
+  }), { totalSurplus: 0, totalDonations: 0, co2Saved: 0, wasteReduced: 0 });
+};
