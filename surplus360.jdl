@@ -24,9 +24,9 @@ application {
     nativeLanguage fr
     packageName com.surplus360
     prodDatabaseType postgresql
-    searchEngine false
+    searchEngine elasticsearch
     serviceDiscoveryType false
-    skipClient true
+    skipClient false
     skipServer false
     testFrameworks [jest]
     websocket spring-websocket
@@ -56,15 +56,13 @@ enum UserRole {
 }
 
 enum ProductCategory {
-  ELECTRONICS,
-  FURNITURE,
-  CLOTHING,
+  OFFICE_EQUIPMENT,
+  TEXTILE,
   FOOD,
-  BOOKS,
-  OFFICE_SUPPLIES,
-  MEDICAL,
-  CONSTRUCTION,
-  AUTOMOTIVE,
+  FURNITURE,
+  ELECTRONICS,
+  CONSTRUCTION_MATERIALS,
+  RECYCLED_MATERIALS,
   OTHER
 }
 
@@ -79,10 +77,8 @@ enum ProductCondition {
 enum ProductStatus {
   AVAILABLE,
   RESERVED,
-  DONATED,
-  SOLD,
-  EXPIRED,
-  DRAFT
+  IN_PROGRESS,
+  COMPLETED
 }
 
 enum RequestType {
@@ -101,23 +97,24 @@ enum RequestStatus {
 enum TransactionType {
   DONATION,
   SALE,
-  PURCHASE,
-  REQUEST
+  RECYCLING
 }
 
 enum TransactionStatus {
   PENDING,
-  IN_PROGRESS,
+  ACCEPTED,
+  IN_TRANSIT,
+  DELIVERED,
   COMPLETED,
-  CANCELLED,
-  REFUNDED
+  CANCELLED
 }
 
 enum NotificationType {
-  INFO,
-  SUCCESS,
-  WARNING,
-  ERROR
+  SURPLUS_MATCH,
+  TRANSACTION_UPDATE,
+  DELIVERY_UPDATE,
+  SYSTEM,
+  NEW_REQUEST
 }
 
 enum NotificationStatus {
@@ -141,15 +138,17 @@ entity Company {
   description TextBlob
   website String maxlength(255)
   phone String maxlength(20)
+  email String required maxlength(100)
   address TextBlob
   city String maxlength(50)
   postalCode String maxlength(10)
   country String maxlength(50)
+  location String maxlength(100)
   logo String maxlength(500)
   rseScore Integer min(0) max(100)
   verified Boolean
   certifications TextBlob
-  createdAt Instant
+  createdAt Instant required
   updatedAt Instant
 }
 
@@ -158,8 +157,8 @@ entity Company {
  * Additional user information beyond JHipster's default User
  */
 entity UserProfile {
-  firstName String maxlength(50)
-  lastName String maxlength(50)
+  firstName String required maxlength(50)
+  lastName String required maxlength(50)
   phone String maxlength(20)
   address TextBlob
   city String maxlength(50)
@@ -168,7 +167,8 @@ entity UserProfile {
   avatar String maxlength(500)
   isVerified Boolean
   role UserRole required
-  createdAt Instant
+  companyId String maxlength(50)
+  createdAt Instant required
   lastLogin Instant
 }
 
@@ -183,24 +183,18 @@ entity Product {
   condition ProductCondition required
   status ProductStatus required
   quantity Integer required min(1)
-  originalPrice BigDecimal min(0)
-  donationPrice BigDecimal min(0)
+  unit String required maxlength(20)
+  estimatedValue BigDecimal min(0)
   salePrice BigDecimal min(0)
-  location String maxlength(100)
-  availableFrom LocalDate
-  availableUntil LocalDate
+  location String required maxlength(100)
   images TextBlob
   tags String maxlength(500)
-  weight Double min(0)
-  dimensions String maxlength(100)
-  pickupOnly Boolean
-  deliveryAvailable Boolean
-  deliveryRadius Integer min(0)
-  deliveryCost BigDecimal min(0)
-  createdAt Instant
-  updatedAt Instant
-  viewCount Integer
-  favoriteCount Integer
+  expirationDate LocalDate
+  pickupInstructions TextBlob
+  views Integer
+  interests Integer
+  createdAt Instant required
+  updatedAt Instant required
 }
 
 /**
@@ -221,7 +215,7 @@ entity Request {
   reason TextBlob
   validUntil LocalDate
   tags String maxlength(500)
-  createdAt Instant
+  createdAt Instant required
   updatedAt Instant
 }
 
@@ -232,19 +226,18 @@ entity Request {
 entity Transaction {
   type TransactionType required
   status TransactionStatus required
+  productId String required maxlength(50)
+  sellerId String required maxlength(50)
+  buyerId String required maxlength(50)
+  requesterId String required maxlength(50)
+  price BigDecimal required min(0)
   quantity Integer required min(1)
-  unitPrice BigDecimal min(0)
-  totalAmount BigDecimal min(0)
-  deliveryMethod String maxlength(50)
-  deliveryAddress TextBlob
-  deliveryDate LocalDate
-  notes TextBlob
-  rating Integer min(1) max(5)
-  review TextBlob
-  createdAt Instant
+  message TextBlob
+  createdAt Instant required
+  acceptedAt Instant
   completedAt Instant
   cancelledAt Instant
-  refundedAt Instant
+  cancelReason TextBlob
 }
 
 /**
@@ -252,13 +245,14 @@ entity Transaction {
  * System notifications for users
  */
 entity Notification {
+  userId String required maxlength(50)
+  type NotificationType required
   title String required maxlength(100)
   message TextBlob required
-  type NotificationType required
-  status NotificationStatus required
   data TextBlob
-  actionUrl String maxlength(500)
-  createdAt Instant
+  read Boolean
+  priority String maxlength(10)
+  createdAt Instant required
   readAt Instant
 }
 
@@ -275,7 +269,7 @@ entity CompanyStats {
   beneficiariesReached Integer
   month Integer min(1) max(12)
   year Integer min(2020)
-  createdAt Instant
+  createdAt Instant required
 }
 
 /**
@@ -287,7 +281,7 @@ entity ProductImage {
   altText String maxlength(200)
   isPrimary Boolean
   sortOrder Integer
-  createdAt Instant
+  createdAt Instant required
 }
 
 /**
@@ -295,7 +289,7 @@ entity ProductImage {
  * User favorite products
  */
 entity Favorite {
-  createdAt Instant
+  createdAt Instant required
 }
 
 /**
@@ -306,7 +300,7 @@ entity Message {
   subject String maxlength(100)
   content TextBlob required
   isRead Boolean
-  createdAt Instant
+  createdAt Instant required
   readAt Instant
 }
 
@@ -351,6 +345,7 @@ relationship OneToMany {
 relationship ManyToOne {
   Transaction{buyer(login)} to User with builtInEntity
   Transaction{seller(login)} to User with builtInEntity
+  Transaction{product} to Product
 }
 
 // Notification relationships
@@ -388,13 +383,6 @@ filter all
 microservice all with surplus360
 
 // ===========================================
-// VALIDATION RULES
-// ===========================================
-
-// Additional validation can be added as needed
-// The @Pattern, @Size, @Min, @Max annotations are already included above
-
-// ===========================================
 // SEARCH CONFIGURATION
 // ===========================================
 
@@ -411,10 +399,3 @@ deployment {
   monitoring no
   serviceDiscoveryType consul
 }
-
-// ===========================================
-// ANGULAR/REACT CLIENT CONFIGURATION
-// ===========================================
-
-// Client-specific configurations
-// Pagination, filtering, and search are enabled above
