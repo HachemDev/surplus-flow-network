@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
+import { getCompanyStats } from '@/types/jhipster';
 import { 
   Building, 
   MapPin, 
@@ -182,7 +183,7 @@ const Company = () => {
                   <Package className="h-8 w-8 text-blue-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Surplus Total</p>
-                    <p className="text-2xl font-bold">{currentCompany.stats.totalSurplus}</p>
+                    <p className="text-2xl font-bold">{getCompanyStats(currentCompany.stats).totalSurplus}</p>
                   </div>
                 </div>
               </CardContent>
@@ -194,7 +195,7 @@ const Company = () => {
                   <Heart className="h-8 w-8 text-red-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Dons Réalisés</p>
-                    <p className="text-2xl font-bold">{currentCompany.stats.totalDonations}</p>
+                    <p className="text-2xl font-bold">{getCompanyStats(currentCompany.stats).totalDonations}</p>
                   </div>
                 </div>
               </CardContent>
@@ -206,7 +207,7 @@ const Company = () => {
                   <TrendingUp className="h-8 w-8 text-green-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">CO₂ Économisé</p>
-                    <p className="text-2xl font-bold">{currentCompany.stats.co2Saved}kg</p>
+                    <p className="text-2xl font-bold">{getCompanyStats(currentCompany.stats).co2Saved}kg</p>
                   </div>
                 </div>
               </CardContent>
@@ -218,7 +219,7 @@ const Company = () => {
                   <DollarSign className="h-8 w-8 text-purple-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Déchets Réduits</p>
-                    <p className="text-2xl font-bold">{Math.round(currentCompany.stats.wasteReduced / 1000)}t</p>
+                    <p className="text-2xl font-bold">{Math.round(getCompanyStats(currentCompany.stats).wasteReduced / 1000)}t</p>
                   </div>
                 </div>
               </CardContent>
@@ -351,7 +352,7 @@ const Company = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {currentCompany.certifications.map((cert, index) => (
+                {(currentCompany.certifications || '').split(',').filter(cert => cert.trim()).map((cert, index) => (
                   <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
                     <Award className="h-6 w-6 text-primary" />
                     <span className="font-medium">{cert}</span>

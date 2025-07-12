@@ -25,11 +25,11 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Filtrer les données selon l'utilisateur connecté
-  const userProducts = mockProducts.filter(p => p.companyId === currentUser?.companyId);
+  const userProducts = mockProducts.filter(p => p.companyId === String(currentUser?.companyId));
   const userTransactions = mockTransactions.filter(t => 
-    t.sellerId === currentUser?.companyId || t.buyerId === currentUser?.companyId
+    t.sellerId === String(currentUser?.companyId) || t.buyerId === String(currentUser?.companyId)
   );
-  const userRSEImpact = mockRSEImpacts.find(r => r.companyId === currentUser?.companyId);
+  const userRSEImpact = mockRSEImpacts.find(r => r.companyId === String(currentUser?.companyId));
 
   const getWelcomeMessage = () => {
     switch (currentUser?.role) {

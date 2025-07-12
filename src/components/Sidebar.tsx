@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
+import { getCompanyStats } from '@/types/jhipster';
 import { 
   BarChart3, 
   Package, 
@@ -169,14 +170,14 @@ const Sidebar = () => {
                       <Package className="h-3 w-3" />
                       Surplus publiés
                     </span>
-                    <span className="font-medium">{currentCompany.stats.totalSurplus}</span>
+                    <span className="font-medium">{getCompanyStats(currentCompany.stats).totalSurplus}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="flex items-center gap-1">
                       <Heart className="h-3 w-3" />
                       Dons réalisés
                     </span>
-                    <span className="font-medium">{currentCompany.stats.totalDonations}</span>
+                    <span className="font-medium">{getCompanyStats(currentCompany.stats).totalDonations}</span>
                   </div>
                 </>
               )}
@@ -185,7 +186,7 @@ const Sidebar = () => {
                   <TrendingUp className="h-3 w-3" />
                   CO₂ économisé
                 </span>
-                <span className="font-medium">{currentCompany.stats.co2Saved}kg</span>
+                <span className="font-medium">{getCompanyStats(currentCompany.stats).co2Saved}kg</span>
               </div>
             </div>
           </div>

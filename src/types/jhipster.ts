@@ -123,6 +123,7 @@ export interface Company {
   city?: string;
   postalCode?: string;
   country?: string;
+  location?: string;
   logo?: string;
   rseScore?: number;
   verified?: boolean;
@@ -360,14 +361,16 @@ export const mapJhipsterUser = (user: JhipsterUser): JhipsterUser => {
   };
 };
 
-export const getCompanyStats = (stats: CompanyStats[]): {
+export const getCompanyStats = (stats?: CompanyStats[]): {
   totalSurplus: number;
   totalDonations: number;
   co2Saved: number;
   wasteReduced: number;
 } => {
+  const initialValue = { totalSurplus: 0, totalDonations: 0, co2Saved: 0, wasteReduced: 0 };
+  
   if (!stats || stats.length === 0) {
-    return { totalSurplus: 0, totalDonations: 0, co2Saved: 0, wasteReduced: 0 };
+    return initialValue;
   }
   
   return stats.reduce((acc, stat) => ({
@@ -375,5 +378,5 @@ export const getCompanyStats = (stats: CompanyStats[]): {
     totalDonations: acc.totalDonations + (stat.totalDonations || 0),
     co2Saved: acc.co2Saved + (stat.co2Saved || 0),
     wasteReduced: acc.wasteReduced + (stat.wasteReduced || 0),
-  }), { totalSurplus: 0, totalDonations: 0, co2Saved: 0, wasteReduced: 0 });
+  }), initialValue);
 };

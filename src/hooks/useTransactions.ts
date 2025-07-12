@@ -11,9 +11,9 @@ export const useTransactions = () => {
   useEffect(() => {
     setTimeout(() => {
       const userTransactions = mockTransactions.filter(t => 
-        t.sellerId === currentUser?.companyId || 
-        t.buyerId === currentUser?.companyId ||
-        t.requesterId === currentUser?.companyId
+        t.sellerId === String(currentUser?.companyId) || 
+        t.buyerId === String(currentUser?.companyId) ||
+        t.requesterId === String(currentUser?.companyId)
       );
       setTransactions(userTransactions);
       setLoading(false);

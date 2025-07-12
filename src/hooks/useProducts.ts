@@ -12,7 +12,7 @@ export const useProducts = () => {
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      const userProducts = mockProducts.filter(p => p.companyId === currentUser?.companyId);
+      const userProducts = mockProducts.filter(p => p.companyId === String(currentUser?.companyId));
       setProducts(userProducts);
       setLoading(false);
     }, 500);
@@ -31,7 +31,7 @@ export const useProducts = () => {
       location: productData.location,
       images: ['/placeholder.svg'],
       status: ProductStatus.AVAILABLE,
-      companyId: currentUser?.companyId || '1',
+      companyId: String(currentUser?.companyId || '1'),
       createdAt: new Date(),
       updatedAt: new Date(),
       expirationDate: productData.expiration ? new Date(productData.expiration) : undefined,
