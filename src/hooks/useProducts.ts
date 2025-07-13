@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { mockProducts } from '@/data/mockData';
-import { Product, ProductStatus, ProductCondition } from '@/types';
+import { Product, ProductStatus } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useProducts = () => {
@@ -12,7 +12,7 @@ export const useProducts = () => {
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      const userProducts = mockProducts.filter(p => p.company?.id === String(currentUser?.companyId));
+      const userProducts = mockProducts.filter(p => p.companyId === String(currentUser?.companyId));
       setProducts(userProducts);
       setLoading(false);
     }, 500);
@@ -29,24 +29,17 @@ export const useProducts = () => {
       estimatedValue: parseInt(productData.estimatedValue) || 0,
       salePrice: parseInt(productData.salePrice) || 0,
       location: productData.location,
-      imageBlob: '/placeholder.svg',
+      images: ['/placeholder.svg'],
       status: ProductStatus.AVAILABLE,
-      owner: {
-        id: String(currentUser?.id || '1'),
-        login: currentUser?.login || 'user',
-        email: currentUser?.email || 'user@example.com',
-        activated: true,
-        createdDate: new Date(),
-        authorities: ['ROLE_USER']
-      },
+      companyId: String(currentUser?.companyId || '1'),
       createdAt: new Date(),
       updatedAt: new Date(),
       expirationDate: productData.expiration ? new Date(productData.expiration) : undefined,
       pickupInstructions: productData.pickup,
       views: 0,
       interests: 0,
-      tags: '',
-      condition: ProductCondition.GOOD,
+      tags: [],
+      condition: 'GOOD',
     };
 
     setProducts(prev => [newProduct, ...prev]);

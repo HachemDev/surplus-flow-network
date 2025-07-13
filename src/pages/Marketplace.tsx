@@ -191,7 +191,7 @@ const Marketplace = () => {
               <div className="relative">
                 <div className="aspect-video overflow-hidden rounded-t-lg">
                   <img
-                    src={product.imageBlob || '/placeholder.svg'}
+                    src={product.images[0] || '/placeholder.svg'}
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
@@ -243,11 +243,11 @@ const Marketplace = () => {
                 </div>
 
                 {/* Tags */}
-                {product.tags && (
+                {product.tags && product.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {product.tags.split(',').slice(0, 3).map((tag, index) => (
+                    {product.tags.slice(0, 3).map((tag, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
-                        {tag.trim()}
+                        {tag}
                       </Badge>
                     ))}
                   </div>
@@ -314,7 +314,7 @@ const Marketplace = () => {
               {/* Résumé du produit */}
               <div className="flex gap-4 p-4 border rounded-lg">
                 <img
-                  src={selectedProduct.imageBlob || '/placeholder.svg'}
+                  src={selectedProduct.images[0] || '/placeholder.svg'}
                   alt={selectedProduct.title}
                   className="w-20 h-20 rounded object-cover"
                 />

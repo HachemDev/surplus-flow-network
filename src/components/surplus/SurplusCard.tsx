@@ -56,7 +56,7 @@ const SurplusCard: React.FC<SurplusCardProps> = ({ product, onEdit, onDelete }) 
     <Card className="card-hover border-0 shadow-sm bg-card/50 backdrop-blur-sm">
       <div className="relative aspect-video overflow-hidden rounded-t-lg">
         <img
-          src={product.imageBlob || '/placeholder.svg'}
+          src={product.images[0] || '/placeholder.svg'}
           alt={product.title}
           className="w-full h-full object-cover"
         />
