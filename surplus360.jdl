@@ -1,9 +1,3 @@
-// ===========================================
-// SURPLUS360 - JHipster Domain Language File
-// ===========================================
-// Compatible with the React frontend structure
-// Supports multilingual (fr, en, ar) and JWT authentication
-
 application {
   config {
     applicationType monolith
@@ -15,7 +9,6 @@ application {
     creationTimestamp 1609459200000
     databaseType sql
     devDatabaseType h2Disk
-    dtoSuffix DTO
     enableHibernateCache true
     enableSwaggerCodegen false
     enableTranslation true
@@ -23,21 +16,16 @@ application {
     languages [fr, en, ar]
     nativeLanguage fr
     packageName com.surplus360
-    prodDatabaseType postgresql
+    prodDatabaseType mysql
     searchEngine elasticsearch
     serviceDiscoveryType false
-    skipClient false
+    skipClient true
     skipServer false
-    testFrameworks [jest]
     websocket spring-websocket
     withAdminUi true
   }
   entities *
 }
-
-// ===========================================
-// ENUMS
-// ===========================================
 
 enum CompanyType {
   BUSINESS,
@@ -123,14 +111,6 @@ enum NotificationStatus {
   ARCHIVED
 }
 
-// ===========================================
-// ENTITIES
-// ===========================================
-
-/**
- * Company/Organization entity
- * Represents businesses, associations, startups, etc.
- */
 entity Company {
   name String required maxlength(100)
   type CompanyType required
@@ -152,10 +132,6 @@ entity Company {
   updatedAt Instant
 }
 
-/**
- * User Profile Extension
- * Additional user information beyond JHipster's default User
- */
 entity UserProfile {
   firstName String required maxlength(50)
   lastName String required maxlength(50)
@@ -167,15 +143,10 @@ entity UserProfile {
   avatar String maxlength(500)
   isVerified Boolean
   role UserRole required
-  companyId String maxlength(50)
   createdAt Instant required
   lastLogin Instant
 }
 
-/**
- * Product/Surplus entity
- * Represents items available for donation or sale
- */
 entity Product {
   title String required maxlength(100)
   description TextBlob required
@@ -187,7 +158,6 @@ entity Product {
   estimatedValue BigDecimal min(0)
   salePrice BigDecimal min(0)
   location String required maxlength(100)
-  images TextBlob
   tags String maxlength(500)
   expirationDate LocalDate
   pickupInstructions TextBlob
@@ -197,10 +167,6 @@ entity Product {
   updatedAt Instant required
 }
 
-/**
- * Request entity
- * Represents donation or purchase requests from users/organizations
- */
 entity Request {
   type RequestType required
   title String required maxlength(100)
@@ -219,10 +185,6 @@ entity Request {
   updatedAt Instant
 }
 
-/**
- * Transaction entity
- * Tracks all transactions (donations, sales, purchases)
- */
 entity Transaction {
   type TransactionType required
   status TransactionStatus required
@@ -240,10 +202,6 @@ entity Transaction {
   cancelReason TextBlob
 }
 
-/**
- * Notification entity
- * System notifications for users
- */
 entity Notification {
   userId String required maxlength(50)
   type NotificationType required
@@ -256,10 +214,6 @@ entity Notification {
   readAt Instant
 }
 
-/**
- * Company Statistics
- * Track environmental and social impact
- */
 entity CompanyStats {
   totalSurplus Integer
   totalDonations Integer
@@ -272,10 +226,6 @@ entity CompanyStats {
   createdAt Instant required
 }
 
-/**
- * Product Images
- * Separate entity for multiple product images
- */
 entity ProductImage {
   imageUrl String required maxlength(500)
   altText String maxlength(200)
@@ -284,18 +234,10 @@ entity ProductImage {
   createdAt Instant required
 }
 
-/**
- * Favorites
- * User favorite products
- */
 entity Favorite {
   createdAt Instant required
 }
 
-/**
- * Message entity
- * Direct messaging between users
- */
 entity Message {
   subject String maxlength(100)
   content TextBlob required
@@ -304,93 +246,38 @@ entity Message {
   readAt Instant
 }
 
-// ===========================================
-// RELATIONSHIPS
-// ===========================================
-
-// User Profile relationships
 relationship OneToOne {
-  UserProfile{user(login)} to User with builtInEntity
+  UserProfile{user(login)} to User{profile} with builtInEntity
 }
 
-// Company relationships
 relationship OneToMany {
   Company{users} to UserProfile{company}
   Company{products} to Product{company}
   Company{requests} to Request{company}
   Company{stats} to CompanyStats{company}
-}
-
-// Product relationships
-relationship ManyToOne {
-  Product{owner(login)} to User with builtInEntity
-}
-
-relationship OneToMany {
   Product{images} to ProductImage{product}
   Product{transactions} to Transaction{product}
-  Product{favorites} to Favorite{product}
-}
-
-// Request relationships
-relationship ManyToOne {
-  Request{requester(login)} to User with builtInEntity
-}
-
-relationship OneToMany {
   Request{transactions} to Transaction{request}
 }
 
-// Transaction relationships
 relationship ManyToOne {
+  Product{owner(login)} to User with builtInEntity
+  Request{requester(login)} to User with builtInEntity
   Transaction{buyer(login)} to User with builtInEntity
   Transaction{seller(login)} to User with builtInEntity
   Transaction{product} to Product
-}
-
-// Notification relationships
-relationship ManyToOne {
   Notification{user(login)} to User with builtInEntity
-}
-
-// Favorite relationships
-relationship ManyToOne {
   Favorite{user(login)} to User with builtInEntity
-}
-
-// Message relationships
-relationship ManyToOne {
+  Favorite{product} to Product
   Message{sender(login)} to User with builtInEntity
   Message{recipient(login)} to User with builtInEntity
 }
 
-// ===========================================
-// SERVICE LAYER & DTOs
-// ===========================================
-
-dto * with mapstruct
-
 service all with serviceImpl
-
+dto all with mapstruct
 paginate all with pagination
 
-filter all
-
-// ===========================================
-// MICROSERVICE CONFIGURATION
-// ===========================================
-
-microservice all with surplus360
-
-// ===========================================
-// SEARCH CONFIGURATION
-// ===========================================
-
 search Product, Request, Company with elasticsearch
-
-// ===========================================
-// DEPLOYMENT CONFIGURATION
-// ===========================================
 
 deployment {
   deploymentType docker-compose
