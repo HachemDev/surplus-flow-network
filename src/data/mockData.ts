@@ -10,9 +10,11 @@ import {
   UserRole,
   CompanyType,
   ProductCategory,
+  ProductCondition,
   ProductStatus,
   TransactionType,
-  TransactionStatus 
+  TransactionStatus,
+  NotificationType 
 } from '@/types';
 
 // Entreprises réalistes
@@ -31,15 +33,8 @@ export const mockCompanies: Company[] = [
     logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200',
     rseScore: 92,
     verified: true,
-    certifications: ['ISO 14001', 'B-Corp', 'Label Numérique Responsable'],
+    certifications: 'ISO 14001, B-Corp, Label Numérique Responsable',
     createdAt: new Date('2024-01-15'),
-    stats: {
-      totalSurplus: 147,
-      totalDonations: 89,
-      totalSales: 58,
-      co2Saved: 2847,
-      wasteReduced: 15673
-    }
   },
   {
     id: '2',
@@ -54,15 +49,8 @@ export const mockCompanies: Company[] = [
     logo: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=200',
     rseScore: 0,
     verified: true,
-    certifications: ['Agrément Jeunesse et Sport', 'Habilitation Don en confiance'],
+    certifications: 'Agrément Jeunesse et Sport, Habilitation Don en confiance',
     createdAt: new Date('2024-02-01'),
-    stats: {
-      totalSurplus: 0,
-      totalDonations: 0,
-      totalSales: 0,
-      co2Saved: 0,
-      wasteReduced: 0
-    }
   },
   {
     id: '3',
@@ -78,15 +66,8 @@ export const mockCompanies: Company[] = [
     logo: 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=200',
     rseScore: 78,
     verified: true,
-    certifications: ['French Tech', 'Startup Climate'],
+    certifications: 'French Tech, Startup Climate',
     createdAt: new Date('2024-03-01'),
-    stats: {
-      totalSurplus: 12,
-      totalDonations: 3,
-      totalSales: 9,
-      co2Saved: 234,
-      wasteReduced: 1250
-    }
   },
   {
     id: '4',
@@ -102,15 +83,8 @@ export const mockCompanies: Company[] = [
     logo: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200',
     rseScore: 88,
     verified: true,
-    certifications: ['GOTS', 'Fair Trade', 'Oeko-Tex'],
+    certifications: 'GOTS, Fair Trade, Oeko-Tex',
     createdAt: new Date('2024-01-20'),
-    stats: {
-      totalSurplus: 234,
-      totalDonations: 156,
-      totalSales: 78,
-      co2Saved: 4567,
-      wasteReduced: 23451
-    }
   }
 ];
 
@@ -126,15 +100,19 @@ export const mockProducts: Product[] = [
     estimatedValue: 12000,
     salePrice: 4500,
     location: 'Paris, France',
-    images: [
-      'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500',
-      'https://images.unsplash.com/photo-1587614295999-6c1c3a7b6c1b?w=500'
-    ],
+    imageBlob: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500',
     status: ProductStatus.AVAILABLE,
-    companyId: '1',
+    tags: 'reconditionné, garantie, professionnel',
+    condition: ProductCondition.GOOD,
+    owner: {
+      id: '1',
+      login: 'admin',
+      email: 'admin@ecotech.fr',
+      activated: true,
+      createdDate: new Date('2024-01-15'),
+      authorities: ['ROLE_USER']
+    },
     company: mockCompanies[0],
-    tags: ['reconditionné', 'garantie', 'professionnel'],
-    condition: 'GOOD',
     pickupInstructions: 'Récupération possible en nos locaux du lundi au vendredi, 9h-17h. Prévoir véhicule adapté.',
     createdAt: new Date('2024-12-10'),
     updatedAt: new Date('2024-12-10'),
@@ -151,15 +129,19 @@ export const mockProducts: Product[] = [
     estimatedValue: 8500,
     salePrice: 0,
     location: 'Lyon, France',
-    images: [
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500',
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500'
-    ],
+    imageBlob: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500',
     status: ProductStatus.RESERVED,
-    companyId: '1',
+    tags: 'don, ergonomique, moderne',
+    condition: ProductCondition.GOOD,
+    owner: {
+      id: '1',
+      login: 'admin',
+      email: 'admin@ecotech.fr',
+      activated: true,
+      createdDate: new Date('2024-01-15'),
+      authorities: ['ROLE_USER']
+    },
     company: mockCompanies[0],
-    tags: ['don', 'ergonomique', 'moderne'],
-    condition: 'GOOD',
     expirationDate: new Date('2025-01-15'),
     pickupInstructions: 'Récupération sur 2 jours, démontage à prévoir. Équipe de 3 personnes minimum.',
     createdAt: new Date('2024-12-05'),
@@ -177,15 +159,19 @@ export const mockProducts: Product[] = [
     estimatedValue: 15000,
     salePrice: 2500,
     location: 'Lille, France',
-    images: [
-      'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500',
-      'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500'
-    ],
+    imageBlob: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500',
     status: ProductStatus.AVAILABLE,
-    companyId: '4',
+    tags: 'textile, qualité, collection',
+    condition: ProductCondition.NEW,
+    owner: {
+      id: '4',
+      login: 'textile-admin',
+      email: 'admin@textile-ethique.fr',
+      activated: true,
+      createdDate: new Date('2024-01-20'),
+      authorities: ['ROLE_USER']
+    },
     company: mockCompanies[3],
-    tags: ['textile', 'qualité', 'collection'],
-    condition: 'NEW',
     expirationDate: new Date('2025-02-01'),
     pickupInstructions: 'Stocks conditionnés sur palettes. Accès poids lourds disponible.',
     createdAt: new Date('2024-12-08'),
@@ -203,14 +189,19 @@ export const mockProducts: Product[] = [
     estimatedValue: 25000,
     salePrice: 8500,
     location: 'Marseille, France',
-    images: [
-      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500'
-    ],
+    imageBlob: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500',
     status: ProductStatus.AVAILABLE,
-    companyId: '1',
+    tags: 'cuisine, professionnel, inox',
+    condition: ProductCondition.LIKE_NEW,
+    owner: {
+      id: '1',
+      login: 'admin',
+      email: 'admin@ecotech.fr',
+      activated: true,
+      createdDate: new Date('2024-01-15'),
+      authorities: ['ROLE_USER']
+    },
     company: mockCompanies[0],
-    tags: ['cuisine', 'professionnel', 'inox'],
-    condition: 'LIKE_NEW',
     pickupInstructions: 'Démontage et transport spécialisé requis. Devis transport sur demande.',
     createdAt: new Date('2024-12-07'),
     updatedAt: new Date('2024-12-07'),
@@ -227,14 +218,19 @@ export const mockProducts: Product[] = [
     estimatedValue: 18000,
     salePrice: 6500,
     location: 'Bordeaux, France',
-    images: [
-      'https://images.unsplash.com/photo-1558618047-fd1ae5c57dd0?w=500'
-    ],
+    imageBlob: 'https://images.unsplash.com/photo-1558618047-fd1ae5c57dd0?w=500',
     status: ProductStatus.AVAILABLE,
-    companyId: '3',
+    tags: 'écologique, construction, certifié',
+    condition: ProductCondition.NEW,
+    owner: {
+      id: '3',
+      login: 'greenstart-admin',
+      email: 'admin@greenstart.co',
+      activated: true,
+      createdDate: new Date('2024-03-01'),
+      authorities: ['ROLE_USER']
+    },
     company: mockCompanies[2],
-    tags: ['écologique', 'construction', 'certifié'],
-    condition: 'NEW',
     expirationDate: new Date('2025-03-01'),
     pickupInstructions: 'Stockage sous hangar. Enlèvement par camion plateau recommandé.',
     createdAt: new Date('2024-12-09'),
@@ -252,14 +248,19 @@ export const mockProducts: Product[] = [
     estimatedValue: 3200,
     salePrice: 0,
     location: 'Nantes, France',
-    images: [
-      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
-    ],
+    imageBlob: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500',
     status: ProductStatus.AVAILABLE,
-    companyId: '1',
+    tags: 'alimentaire, don, urgence',
+    condition: ProductCondition.GOOD,
+    owner: {
+      id: '1',
+      login: 'admin',
+      email: 'admin@ecotech.fr',
+      activated: true,
+      createdDate: new Date('2024-01-15'),
+      authorities: ['ROLE_USER']
+    },
     company: mockCompanies[0],
-    tags: ['alimentaire', 'don', 'urgence'],
-    condition: 'GOOD',
     expirationDate: new Date('2025-01-20'),
     pickupInstructions: 'Récupération urgente souhaitée. Véhicule frigorifique non nécessaire.',
     createdAt: new Date('2024-12-11'),
@@ -277,18 +278,28 @@ export const mockTransactions: Transaction[] = [
     productId: '2',
     product: mockProducts[1],
     sellerId: '1',
-    seller: mockCompanies[0],
+    seller: {
+      id: '1',
+      login: 'admin',
+      email: 'admin@ecotech.fr',
+      activated: true,
+      createdDate: new Date('2024-01-15'),
+      authorities: ['ROLE_USER']
+    },
     buyerId: '2',
-    buyer: mockCompanies[1],
+    buyer: {
+      id: '2',
+      login: 'association-admin',
+      email: 'admin@solidarite-numerique.org',
+      activated: true,
+      createdDate: new Date('2024-02-01'),
+      authorities: ['ROLE_USER']
+    },
     requesterId: '3',
     price: 0,
     quantity: 55,
     status: TransactionStatus.IN_TRANSIT,
     message: 'Association recherche mobilier pour équiper centre formation jeunes en difficulté.',
-    documents: {
-      taxCertificate: '/documents/tax-cert-T001.pdf',
-      rseCertificate: '/documents/rse-cert-T001.pdf'
-    },
     createdAt: new Date('2024-12-08'),
     acceptedAt: new Date('2024-12-09'),
   },
@@ -298,18 +309,28 @@ export const mockTransactions: Transaction[] = [
     productId: '1',
     product: mockProducts[0],
     sellerId: '1',
-    seller: mockCompanies[0],
+    seller: {
+      id: '1',
+      login: 'admin',
+      email: 'admin@ecotech.fr',
+      activated: true,
+      createdDate: new Date('2024-01-15'),
+      authorities: ['ROLE_USER']
+    },
     buyerId: '3',
-    buyer: mockCompanies[2],
+    buyer: {
+      id: '3',
+      login: 'greenstart-admin',
+      email: 'admin@greenstart.co',
+      activated: true,
+      createdDate: new Date('2024-03-01'),
+      authorities: ['ROLE_USER']
+    },
     requesterId: '4',
     price: 4500,
     quantity: 15,
     status: TransactionStatus.COMPLETED,
     message: 'Startup recherche équipement informatique pour équipe en croissance.',
-    documents: {
-      contract: '/documents/contract-T002.pdf',
-      rseCertificate: '/documents/rse-cert-T002.pdf'
-    },
     createdAt: new Date('2024-12-01'),
     acceptedAt: new Date('2024-12-02'),
     completedAt: new Date('2024-12-10'),
@@ -320,15 +341,29 @@ export const mockTransactions: Transaction[] = [
     productId: '6',
     product: mockProducts[5],
     sellerId: '1',
-    seller: mockCompanies[0],
+    seller: {
+      id: '1',
+      login: 'admin',
+      email: 'admin@ecotech.fr',
+      activated: true,
+      createdDate: new Date('2024-01-15'),
+      authorities: ['ROLE_USER']
+    },
     buyerId: '2',
-    buyer: mockCompanies[1],
+    buyer: {
+      id: '2',
+      login: 'association-admin',
+      email: 'admin@solidarite-numerique.org',
+      activated: true,
+      createdDate: new Date('2024-02-01'),
+      authorities: ['ROLE_USER']
+    },
     requesterId: '3',
     price: 0,
     quantity: 800,
     status: TransactionStatus.PENDING,
     message: 'Demande urgente pour banque alimentaire locale.',
-    documents: {},
+    
     createdAt: new Date('2024-12-11'),
   }
 ];
@@ -453,10 +488,18 @@ export const mockNotifications: Notification[] = [
   {
     id: 'N001',
     userId: '2',
-    type: 'SURPLUS_MATCH',
+    type: NotificationType.SURPLUS_MATCH,
     title: 'Nouveau surplus correspondant à vos critères',
     message: 'Un lot d\'ordinateurs portables vient d\'être publié et correspond à vos besoins',
-    data: { productId: '1', productTitle: 'Ordinateurs portables Dell' },
+    data: '{"productId":"1","productTitle":"Ordinateurs portables Dell"}',
+    user: {
+      id: '2',
+      login: 'association-admin',
+      email: 'admin@solidarite-numerique.org',
+      activated: true,
+      createdDate: new Date('2024-02-01'),
+      authorities: ['ROLE_USER']
+    },
     read: false,
     priority: 'HIGH',
     createdAt: new Date('2024-12-12T10:30:00')
@@ -464,10 +507,18 @@ export const mockNotifications: Notification[] = [
   {
     id: 'N002',
     userId: '3',
-    type: 'TRANSACTION_UPDATE',
+    type: NotificationType.TRANSACTION_UPDATE,
     title: 'Votre demande a été acceptée !',
     message: 'EcoTech Solutions a accepté votre demande pour le mobilier de bureau',
-    data: { transactionId: 'T001' },
+    data: '{"transactionId":"T001"}',
+    user: {
+      id: '3',
+      login: 'greenstart-admin',
+      email: 'admin@greenstart.co',
+      activated: true,
+      createdDate: new Date('2024-03-01'),
+      authorities: ['ROLE_USER']
+    },
     read: false,
     priority: 'HIGH',
     createdAt: new Date('2024-12-12T09:15:00')
@@ -475,10 +526,18 @@ export const mockNotifications: Notification[] = [
   {
     id: 'N003',
     userId: '4',
-    type: 'DELIVERY_UPDATE',
+    type: NotificationType.DELIVERY_UPDATE,
     title: 'Livraison en cours',
     message: 'Vos ordinateurs portables sont en transit, livraison prévue demain',
-    data: { trackingNumber: 'CP987654321FR' },
+    data: '{"trackingNumber":"CP987654321FR"}',
+    user: {
+      id: '4',
+      login: 'textile-admin',
+      email: 'admin@textile-ethique.fr',
+      activated: true,
+      createdDate: new Date('2024-01-20'),
+      authorities: ['ROLE_USER']
+    },
     read: true,
     priority: 'MEDIUM',
     createdAt: new Date('2024-12-11T16:45:00'),
@@ -487,10 +546,18 @@ export const mockNotifications: Notification[] = [
   {
     id: 'N004',
     userId: '2',
-    type: 'NEW_REQUEST',
+    type: NotificationType.NEW_REQUEST,
     title: 'Nouvelle demande reçue',
     message: 'GreenStart Innovation souhaite acquérir vos matériaux de construction',
-    data: { productId: '5', requesterId: '4' },
+    data: '{"productId":"5","requesterId":"4"}',
+    user: {
+      id: '2',
+      login: 'association-admin',
+      email: 'admin@solidarite-numerique.org',
+      activated: true,
+      createdDate: new Date('2024-02-01'),
+      authorities: ['ROLE_USER']
+    },
     read: false,
     priority: 'MEDIUM',
     createdAt: new Date('2024-12-11T14:20:00')

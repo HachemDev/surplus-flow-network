@@ -25,7 +25,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Filtrer les données selon l'utilisateur connecté
-  const userProducts = mockProducts.filter(p => p.companyId === String(currentUser?.companyId));
+  const userProducts = mockProducts.filter(p => p.company?.id === String(currentUser?.companyId));
   const userTransactions = mockTransactions.filter(t => 
     t.sellerId === String(currentUser?.companyId) || t.buyerId === String(currentUser?.companyId)
   );
@@ -207,7 +207,7 @@ const Dashboard = () => {
                 {userProducts.slice(0, 3).map((product) => (
                   <div key={product.id} className="flex items-center gap-4 p-4 border rounded-lg">
                     <img 
-                      src={product.images[0] || '/placeholder.svg'} 
+                      src={product.imageBlob || '/placeholder.svg'} 
                       alt={product.title}
                       className="w-12 h-12 rounded object-cover"
                     />
