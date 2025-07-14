@@ -1,0 +1,2 @@
+org.springframework.test.context.ContextCustomizerFactory = \
+    com.surplus360.config.SqlTestContainersSpringContextCustomizerFactory

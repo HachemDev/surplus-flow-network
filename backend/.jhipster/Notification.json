@@ -1,0 +1,69 @@
+{
+  "annotations": {
+    "changelogDate": "20250714225025"
+  },
+  "applications": ["surplus360"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "userId",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "type",
+      "fieldType": "NotificationType",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "SURPLUS_MATCH,TRANSACTION_UPDATE,DELIVERY_UPDATE,SYSTEM,NEW_REQUEST"
+    },
+    {
+      "fieldName": "title",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "100"
+    },
+    {
+      "fieldName": "message",
+      "fieldType": "TextBlob",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "data",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "read",
+      "fieldType": "Boolean"
+    },
+    {
+      "fieldName": "priority",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "10"
+    },
+    {
+      "fieldName": "createdAt",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "readAt",
+      "fieldType": "Instant"
+    }
+  ],
+  "name": "Notification",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityField": "login",
+      "otherEntityName": "user",
+      "relationshipName": "user",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipWithBuiltInEntity": true
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

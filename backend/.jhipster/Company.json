@@ -1,0 +1,147 @@
+{
+  "annotations": {
+    "changelogDate": "20250714224625"
+  },
+  "applications": ["surplus360"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "100"
+    },
+    {
+      "fieldName": "type",
+      "fieldType": "CompanyType",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "BUSINESS,ASSOCIATION,STARTUP"
+    },
+    {
+      "fieldName": "industry",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "description",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "website",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "255"
+    },
+    {
+      "fieldName": "phone",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "20"
+    },
+    {
+      "fieldName": "email",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "100"
+    },
+    {
+      "fieldName": "address",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "city",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "postalCode",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "10"
+    },
+    {
+      "fieldName": "country",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "location",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "100"
+    },
+    {
+      "fieldName": "logo",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "rseScore",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["min", "max"],
+      "fieldValidateRulesMax": "100",
+      "fieldValidateRulesMin": "0"
+    },
+    {
+      "fieldName": "verified",
+      "fieldType": "Boolean"
+    },
+    {
+      "fieldName": "certifications",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "totalSurplus",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "totalDonations",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "totalSales",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "co2Saved",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "wasteReduced",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "createdAt",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "updatedAt",
+      "fieldType": "Instant"
+    }
+  ],
+  "name": "Company",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "userProfile",
+      "otherEntityRelationshipName": "company",
+      "relationshipName": "users",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "product",
+      "otherEntityRelationshipName": "company",
+      "relationshipName": "products",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

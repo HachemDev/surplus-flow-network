@@ -1,0 +1,132 @@
+{
+  "annotations": {
+    "changelogDate": "20250714224825"
+  },
+  "applications": ["surplus360"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "title",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "100"
+    },
+    {
+      "fieldName": "description",
+      "fieldType": "TextBlob",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "category",
+      "fieldType": "ProductCategory",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "OFFICE_EQUIPMENT,TEXTILE,FOOD,FURNITURE,ELECTRONICS,CONSTRUCTION_MATERIALS,RECYCLED_MATERIALS,OTHER"
+    },
+    {
+      "fieldName": "condition",
+      "fieldType": "ProductCondition",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "NEW,LIKE_NEW,GOOD,FAIR"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "ProductStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "AVAILABLE,RESERVED,IN_PROGRESS,COMPLETED"
+    },
+    {
+      "fieldName": "quantity",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["required", "min"],
+      "fieldValidateRulesMin": "1"
+    },
+    {
+      "fieldName": "unit",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "20"
+    },
+    {
+      "fieldName": "estimatedValue",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["min"],
+      "fieldValidateRulesMin": "0"
+    },
+    {
+      "fieldName": "salePrice",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["min"],
+      "fieldValidateRulesMin": "0"
+    },
+    {
+      "fieldName": "location",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "100"
+    },
+    {
+      "fieldName": "images",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "tags",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "expirationDate",
+      "fieldType": "LocalDate"
+    },
+    {
+      "fieldName": "pickupInstructions",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "views",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "interests",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "createdAt",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "updatedAt",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "name": "Product",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "transaction",
+      "otherEntityRelationshipName": "product",
+      "relationshipName": "transactions",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityField": "login",
+      "otherEntityName": "user",
+      "relationshipName": "owner",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipWithBuiltInEntity": true
+    },
+    {
+      "otherEntityName": "company",
+      "otherEntityRelationshipName": "products",
+      "relationshipName": "company",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

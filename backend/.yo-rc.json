@@ -1,0 +1,32 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "surplus360",
+    "buildTool": "maven",
+    "cacheProvider": "ehcache",
+    "clientFramework": "react",
+    "databaseType": "sql",
+    "devDatabaseType": "h2Disk",
+    "enableHibernateCache": true,
+    "enableSwaggerCodegen": false,
+    "enableTranslation": false,
+    "entities": ["Company", "UserProfile", "Product", "Transaction", "Notification"],
+    "jhiPrefix": "jhi",
+    "jhipsterVersion": "8.11.0",
+    "jwtSecretKey": "YjFjOTM3MGZmZmUwMTA5NGQ1ZDBlMjM1NWYzNTc0MDJlM2RmOTVmNmI1ZDExNTI5ZmVkMDQxN2ZmMmVlNWNmZGVmNTAwODUwYTYxOWUxMmY1YTEzYjczMWQ3MTc1ODhlNmJiZjI4YjJkODU2ZGYxYTljMWRmMjk2ZWY4OWZiZDY=",
+    "languages": ["en"],
+    "lastLiquibaseTimestamp": 1752533425000,
+    "monorepository": true,
+    "nativeLanguage": "en",
+    "packageName": "com.surplus360",
+    "prodDatabaseType": "mysql",
+    "searchEngine": false,
+    "serviceDiscoveryType": false,
+    "skipClient": true,
+    "skipCommitHook": true,
+    "skipServer": false,
+    "websocket": false,
+    "withAdminUi": true
+  }
+}

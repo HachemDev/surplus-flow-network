@@ -1,0 +1,95 @@
+{
+  "annotations": {
+    "changelogDate": "20250714224925"
+  },
+  "applications": ["surplus360"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "type",
+      "fieldType": "TransactionType",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "DONATION,SALE,RECYCLING"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "TransactionStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "PENDING,ACCEPTED,IN_TRANSIT,DELIVERED,COMPLETED,CANCELLED"
+    },
+    {
+      "fieldName": "price",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required", "min"],
+      "fieldValidateRulesMin": "0"
+    },
+    {
+      "fieldName": "quantity",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["required", "min"],
+      "fieldValidateRulesMin": "1"
+    },
+    {
+      "fieldName": "message",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "documents",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "logistics",
+      "fieldType": "TextBlob"
+    },
+    {
+      "fieldName": "createdAt",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "acceptedAt",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "completedAt",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "cancelledAt",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "cancelReason",
+      "fieldType": "TextBlob"
+    }
+  ],
+  "name": "Transaction",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityField": "login",
+      "otherEntityName": "user",
+      "relationshipName": "buyer",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipWithBuiltInEntity": true
+    },
+    {
+      "otherEntityField": "login",
+      "otherEntityName": "user",
+      "relationshipName": "seller",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipWithBuiltInEntity": true
+    },
+    {
+      "otherEntityName": "product",
+      "otherEntityRelationshipName": "transactions",
+      "relationshipName": "product",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

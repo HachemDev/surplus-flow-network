@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { PaginatedResponse, SearchCriteria } from '@/types/jhipster';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export class BaseApiService {
   private axiosInstance: AxiosInstance;

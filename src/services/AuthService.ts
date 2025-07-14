@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export interface LoginRequest {
   username: string;
@@ -44,7 +44,7 @@ class AuthService {
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      const response = await axios.post<LoginResponse>(`${API_URL}/api/authenticate`, credentials);
+      const response = await axios.post<LoginResponse>(`${API_URL}/authenticate`, credentials);
       const { id_token } = response.data;
       
       if (credentials.rememberMe) {
@@ -66,7 +66,7 @@ class AuthService {
     }
     
     try {
-      const response = await axios.get<UserAccount>(`${API_URL}/api/account`, {
+      const response = await axios.get<UserAccount>(`${API_URL}/account`, {
         headers: {
           Authorization: `Bearer ${this.token}`
         }

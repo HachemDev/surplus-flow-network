@@ -1,0 +1,201 @@
+application {
+  config {
+    applicationType monolith
+    authenticationType jwt
+    baseName surplus360
+    buildTool maven
+    cacheProvider ehcache
+    clientFramework react
+    databaseType sql
+    devDatabaseType h2Disk
+    enableHibernateCache true
+    enableSwaggerCodegen false
+    enableTranslation false
+    jhiPrefix jhi
+    languages [en]
+    nativeLanguage en
+    packageName com.surplus360
+    prodDatabaseType mysql
+    searchEngine false
+    serviceDiscoveryType false
+    skipClient true
+    skipServer false
+    websocket false
+    withAdminUi true
+  }
+  entities *
+}
+
+enum CompanyType {
+  BUSINESS,
+  ASSOCIATION,
+  STARTUP
+}
+
+enum UserRole {
+  ADMIN,
+  COMPANY,
+  ASSOCIATION,
+  ENTREPRENEUR,
+  INDIVIDUAL
+}
+
+enum ProductCategory {
+  OFFICE_EQUIPMENT,
+  TEXTILE,
+  FOOD,
+  FURNITURE,
+  ELECTRONICS,
+  CONSTRUCTION_MATERIALS,
+  RECYCLED_MATERIALS,
+  OTHER
+}
+
+enum ProductCondition {
+  NEW,
+  LIKE_NEW,
+  GOOD,
+  FAIR
+}
+
+enum ProductStatus {
+  AVAILABLE,
+  RESERVED,
+  IN_PROGRESS,
+  COMPLETED
+}
+
+enum TransactionType {
+  DONATION,
+  SALE,
+  RECYCLING
+}
+
+enum TransactionStatus {
+  PENDING,
+  ACCEPTED,
+  IN_TRANSIT,
+  DELIVERED,
+  COMPLETED,
+  CANCELLED
+}
+
+enum NotificationType {
+  SURPLUS_MATCH,
+  TRANSACTION_UPDATE,
+  DELIVERY_UPDATE,
+  SYSTEM,
+  NEW_REQUEST
+}
+
+entity Company {
+  name String required maxlength(100)
+  type CompanyType required
+  industry String maxlength(50)
+  description TextBlob
+  website String maxlength(255)
+  phone String maxlength(20)
+  email String required maxlength(100)
+  address TextBlob
+  city String maxlength(50)
+  postalCode String maxlength(10)
+  country String maxlength(50)
+  location String maxlength(100)
+  logo String maxlength(500)
+  rseScore Integer min(0) max(100)
+  verified Boolean
+  certifications TextBlob
+  totalSurplus Integer
+  totalDonations Integer
+  totalSales Integer
+  co2Saved BigDecimal
+  wasteReduced BigDecimal
+  createdAt Instant required
+  updatedAt Instant
+}
+
+entity UserProfile {
+  firstName String required maxlength(50)
+  lastName String required maxlength(50)
+  phone String maxlength(20)
+  address TextBlob
+  city String maxlength(50)
+  postalCode String maxlength(10)
+  country String maxlength(50)
+  avatar String maxlength(500)
+  isVerified Boolean
+  role UserRole required
+  email String required maxlength(100)
+  companyId String maxlength(50)
+  createdAt Instant required
+  lastLogin Instant
+}
+
+entity Product {
+  title String required maxlength(100)
+  description TextBlob required
+  category ProductCategory required
+  condition ProductCondition required
+  status ProductStatus required
+  quantity Integer required min(1)
+  unit String required maxlength(20)
+  estimatedValue BigDecimal min(0)
+  salePrice BigDecimal min(0)
+  location String required maxlength(100)
+  images TextBlob
+  tags String maxlength(500)
+  expirationDate LocalDate
+  pickupInstructions TextBlob
+  views Integer
+  interests Integer
+  createdAt Instant required
+  updatedAt Instant required
+}
+
+entity Transaction {
+  type TransactionType required
+  status TransactionStatus required
+  price BigDecimal required min(0)
+  quantity Integer required min(1)
+  message TextBlob
+  documents TextBlob
+  logistics TextBlob
+  createdAt Instant required
+  acceptedAt Instant
+  completedAt Instant
+  cancelledAt Instant
+  cancelReason TextBlob
+}
+
+entity Notification {
+  userId String required maxlength(50)
+  type NotificationType required
+  title String required maxlength(100)
+  message TextBlob required
+  data TextBlob
+  read Boolean
+  priority String maxlength(10)
+  createdAt Instant required
+  readAt Instant
+}
+
+relationship OneToOne {
+  UserProfile{user(login)} to User{profile} with builtInEntity
+}
+
+relationship OneToMany {
+  Company{users} to UserProfile{company}
+  Company{products} to Product{company}
+  Product{transactions} to Transaction{product}
+}
+
+relationship ManyToOne {
+  Product{owner(login)} to User with builtInEntity
+  Transaction{buyer(login)} to User with builtInEntity
+  Transaction{seller(login)} to User with builtInEntity
+  Notification{user(login)} to User with builtInEntity
+}
+
+service all with serviceImpl
+dto all with mapstruct
+paginate all with pagination

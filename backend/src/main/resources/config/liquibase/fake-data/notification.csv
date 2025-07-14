@@ -1,0 +1,11 @@
+id;user_id;type;title;message;data;jhi_read;priority;created_at;read_at
+1;seriously expensive sonar;DELIVERY_UPDATE;ha;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;true;wear whene;2025-07-14T12:40:51;2025-07-14T15:54:04
+2;boo;DELIVERY_UPDATE;slight midst true;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;true;capitalise;2025-07-14T07:26:00;2025-07-14T01:04:46
+3;flimsy injunction;DELIVERY_UPDATE;straw;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;false;contravene;2025-07-14T18:24:39;2025-07-14T22:47:38
+4;insecure deceivingly depart;DELIVERY_UPDATE;when;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;true;starch car;2025-07-14T04:57:12;2025-07-14T15:32:15
+5;yahoo;DELIVERY_UPDATE;unlike;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;false;revere;2025-07-14T18:28:22;2025-07-14T05:52:49
+6;fully likewise record;SYSTEM;because;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;true;unfurl;2025-07-14T02:03:34;2025-07-14T18:58:47
+7;besides;SYSTEM;phooey outside;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;false;afore pish;2025-07-14T16:27:51;2025-07-14T17:55:46
+8;stall modulo;NEW_REQUEST;ew down;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;false;gah unless;2025-07-14T00:02:08;2025-07-14T18:21:23
+9;although while bowler;DELIVERY_UPDATE;meanwhile;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;true;owlishly a;2025-07-14T19:36:07;2025-07-14T19:49:42
+10;violently;SURPLUS_MATCH;hence furiously;../fake-data/blob/hipster.txt;../fake-data/blob/hipster.txt;false;chiffonier;2025-07-14T17:37:19;2025-07-14T17:16:52
