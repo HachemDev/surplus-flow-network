@@ -198,7 +198,6 @@ relationship ManyToOne {
   Product{owner(login)} to User with builtInEntity
   Transaction{buyer(login)} to User with builtInEntity
   Transaction{seller(login)} to User with builtInEntity
-  Transaction{product} to Product
   Notification{user(login)} to User with builtInEntity
 }
 
