@@ -159,10 +159,6 @@ entity Product {
 entity Transaction {
   type TransactionType required
   status TransactionStatus required
-  productId String required maxlength(50)
-  sellerId String required maxlength(50)
-  buyerId String required maxlength(50)
-  requesterId String required maxlength(50)
   price BigDecimal required min(0)
   quantity Integer required min(1)
   message TextBlob
