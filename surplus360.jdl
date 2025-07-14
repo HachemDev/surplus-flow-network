@@ -30,9 +30,7 @@ application {
 enum CompanyType {
   BUSINESS,
   ASSOCIATION,
-  STARTUP,
-  NGO,
-  COOPERATIVE
+  STARTUP
 }
 
 enum UserRole {
@@ -58,8 +56,7 @@ enum ProductCondition {
   NEW,
   LIKE_NEW,
   GOOD,
-  FAIR,
-  POOR
+  FAIR
 }
 
 enum ProductStatus {
@@ -69,18 +66,6 @@ enum ProductStatus {
   COMPLETED
 }
 
-enum RequestType {
-  DONATION,
-  PURCHASE
-}
-
-enum RequestStatus {
-  PENDING,
-  APPROVED,
-  REJECTED,
-  FULFILLED,
-  CANCELLED
-}
 
 enum TransactionType {
   DONATION,
@@ -105,11 +90,6 @@ enum NotificationType {
   NEW_REQUEST
 }
 
-enum NotificationStatus {
-  UNREAD,
-  READ,
-  ARCHIVED
-}
 
 entity Company {
   name String required maxlength(100)
@@ -128,6 +108,11 @@ entity Company {
   rseScore Integer min(0) max(100)
   verified Boolean
   certifications TextBlob
+  totalSurplus Integer
+  totalDonations Integer
+  totalSales Integer
+  co2Saved BigDecimal
+  wasteReduced BigDecimal
   createdAt Instant required
   updatedAt Instant
 }
@@ -143,6 +128,8 @@ entity UserProfile {
   avatar String maxlength(500)
   isVerified Boolean
   role UserRole required
+  email String required maxlength(100)
+  companyId String maxlength(50)
   createdAt Instant required
   lastLogin Instant
 }
@@ -158,6 +145,7 @@ entity Product {
   estimatedValue BigDecimal min(0)
   salePrice BigDecimal min(0)
   location String required maxlength(100)
+  images TextBlob
   tags String maxlength(500)
   expirationDate LocalDate
   pickupInstructions TextBlob
@@ -167,23 +155,6 @@ entity Product {
   updatedAt Instant required
 }
 
-entity Request {
-  type RequestType required
-  title String required maxlength(100)
-  description TextBlob required
-  category ProductCategory required
-  quantity Integer required min(1)
-  maxPrice BigDecimal min(0)
-  urgencyLevel Integer min(1) max(5)
-  location String maxlength(100)
-  deliveryRequired Boolean
-  status RequestStatus required
-  reason TextBlob
-  validUntil LocalDate
-  tags String maxlength(500)
-  createdAt Instant required
-  updatedAt Instant
-}
 
 entity Transaction {
   type TransactionType required
@@ -195,6 +166,8 @@ entity Transaction {
   price BigDecimal required min(0)
   quantity Integer required min(1)
   message TextBlob
+  documents TextBlob
+  logistics TextBlob
   createdAt Instant required
   acceptedAt Instant
   completedAt Instant
@@ -214,37 +187,6 @@ entity Notification {
   readAt Instant
 }
 
-entity CompanyStats {
-  totalSurplus Integer
-  totalDonations Integer
-  totalSales Integer
-  co2Saved BigDecimal
-  wasteReduced BigDecimal
-  beneficiariesReached Integer
-  month Integer min(1) max(12)
-  year Integer min(2020)
-  createdAt Instant required
-}
-
-entity ProductImage {
-  imageUrl String required maxlength(500)
-  altText String maxlength(200)
-  isPrimary Boolean
-  sortOrder Integer
-  createdAt Instant required
-}
-
-entity Favorite {
-  createdAt Instant required
-}
-
-entity Message {
-  subject String maxlength(100)
-  content TextBlob required
-  isRead Boolean
-  createdAt Instant required
-  readAt Instant
-}
 
 relationship OneToOne {
   UserProfile{user(login)} to User{profile} with builtInEntity
@@ -253,31 +195,22 @@ relationship OneToOne {
 relationship OneToMany {
   Company{users} to UserProfile{company}
   Company{products} to Product{company}
-  Company{requests} to Request{company}
-  Company{stats} to CompanyStats{company}
-  Product{images} to ProductImage{product}
   Product{transactions} to Transaction{product}
-  Request{transactions} to Transaction{request}
 }
 
 relationship ManyToOne {
   Product{owner(login)} to User with builtInEntity
-  Request{requester(login)} to User with builtInEntity
   Transaction{buyer(login)} to User with builtInEntity
   Transaction{seller(login)} to User with builtInEntity
   Transaction{product} to Product
   Notification{user(login)} to User with builtInEntity
-  Favorite{user(login)} to User with builtInEntity
-  Favorite{product} to Product
-  Message{sender(login)} to User with builtInEntity
-  Message{recipient(login)} to User with builtInEntity
 }
 
 service all with serviceImpl
 dto all with mapstruct
 paginate all with pagination
 
-search Product, Request, Company with elasticsearch
+search Product, Company with elasticsearch
 
 deployment {
   deploymentType docker-compose
