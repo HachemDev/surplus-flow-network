@@ -71,45 +71,61 @@ public class JWTUtil {
     }
 
     public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-            .setSigningKey(getSigningKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-        return claims.getSubject();
+        try {
+            Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .parseClaimsJws(token)
+                .getBody();
+            return claims.getSubject();
+        } catch (Exception e) {
+            log.error("Error parsing JWT token", e);
+            return null;
+        }
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-            .setSigningKey(getSigningKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-        return claims.get(USER_ID_KEY, Long.class);
+        try {
+            Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .parseClaimsJws(token)
+                .getBody();
+            return claims.get(USER_ID_KEY, Long.class);
+        } catch (Exception e) {
+            log.error("Error parsing JWT token", e);
+            return null;
+        }
     }
 
     public String getAuthoritiesFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-            .setSigningKey(getSigningKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-        return claims.get(AUTHORITIES_KEY, String.class);
+        try {
+            Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .parseClaimsJws(token)
+                .getBody();
+            return claims.get(AUTHORITIES_KEY, String.class);
+        } catch (Exception e) {
+            log.error("Error parsing JWT token", e);
+            return null;
+        }
     }
 
     public Date getExpirationDateFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-            .setSigningKey(getSigningKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-        return claims.getExpiration();
+        try {
+            Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .parseClaimsJws(token)
+                .getBody();
+            return claims.getExpiration();
+        } catch (Exception e) {
+            log.error("Error parsing JWT token", e);
+            return null;
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
         try {
             final String username = getUsernameFromToken(token);
-            return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            return username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token);
         } catch (Exception e) {
             log.error("Token validation failed", e);
             return false;
@@ -118,9 +134,8 @@ public class JWTUtil {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
+            Jwts.parser()
                 .setSigningKey(getSigningKey())
-                .build()
                 .parseClaimsJws(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
