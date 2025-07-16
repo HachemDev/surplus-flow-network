@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.Optional;
+import org.springframework.security.core.GrantedAuthority;
+import java.util.Collection;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -192,8 +194,11 @@ public class AuthenticationController {
             }
 
             User user = userOpt.get();
-            Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-
+            // Map authorities to GrantedAuthority
+            Collection<? extends GrantedAuthority> grantedAuthorities = user.getAuthorities().stream()
+                .map(auth -> new org.springframework.security.core.authority.SimpleGrantedAuthority(auth.getName()))
+                .toList();
+            Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, grantedAuthorities);
             String accessToken = jwtUtil.generateToken(authentication);
             String newRefreshToken = jwtUtil.generateRefreshToken(authentication);
             Long expiresIn = jwtUtil.getExpirationTime();

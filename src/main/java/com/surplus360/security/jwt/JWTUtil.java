@@ -29,6 +29,11 @@ public class JWTUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    public String generateToken(Authentication authentication) {
+        // Fallback for old controller usage: use userId = null
+        return generateToken(authentication, null);
+    }
+
     public String generateToken(Authentication authentication, Long userId) {
         String authorities = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
@@ -47,6 +52,11 @@ public class JWTUtil {
             .compact();
     }
 
+    public String generateRefreshToken(Authentication authentication) {
+        // Fallback for old controller usage: use userId = null
+        return generateRefreshToken(authentication.getName(), null);
+    }
+
     public String generateRefreshToken(String username, Long userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + applicationProperties.getJwt().getRefreshExpiration());
@@ -61,42 +71,34 @@ public class JWTUtil {
     }
 
     public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
             .setSigningKey(getSigningKey())
-            .build()
             .parseClaimsJws(token)
             .getBody();
-
         return claims.getSubject();
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
             .setSigningKey(getSigningKey())
-            .build()
             .parseClaimsJws(token)
             .getBody();
-
         return claims.get(USER_ID_KEY, Long.class);
     }
 
     public String getAuthoritiesFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
             .setSigningKey(getSigningKey())
-            .build()
             .parseClaimsJws(token)
             .getBody();
-
         return claims.get(AUTHORITIES_KEY, String.class);
     }
 
     public Date getExpirationDateFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
             .setSigningKey(getSigningKey())
-            .build()
             .parseClaimsJws(token)
             .getBody();
-
         return claims.getExpiration();
     }
 
@@ -112,9 +114,8 @@ public class JWTUtil {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
+            Jwts.parser()
                 .setSigningKey(getSigningKey())
-                .build()
                 .parseClaimsJws(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
@@ -136,6 +137,11 @@ public class JWTUtil {
 
     public long getExpirationTimeFromToken(String token) {
         return getExpirationDateFromToken(token).getTime();
+    }
+
+    public Long getExpirationTime() {
+        // Return expiration in seconds
+        return applicationProperties.getJwt().getExpiration() / 1000;
     }
 
     public String extractTokenFromBearerString(String bearerToken) {
