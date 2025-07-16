@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { authApi, userProfileApi } from '@/services/api';
-import { LoginRequest, RegisterRequest, JhipsterUser, UserProfile } from '@/types/jhipster';
+import { LoginRequest, RegisterRequest, User, UserProfile } from '@/types';
 
 export function useLogin() {
   const navigate = useNavigate();

@@ -4,26 +4,20 @@ import {
   productApi,
   companyApi,
   userProfileApi,
-  requestApi,
   transactionApi,
   notificationApi,
-  favoriteApi,
-  messageApi,
   companyStatsApi
 } from '@/services/api';
 import {
   Product,
   Company,
   UserProfile,
-  Request,
   Transaction,
   Notification,
-  Favorite,
-  Message,
   CompanyStats,
   SearchCriteria,
   PaginatedResponse
-} from '@/types/jhipster';
+} from '@/types';
 
 // Generic hooks for API operations
 export function useApiQuery<T>(
@@ -193,37 +187,6 @@ export function useUpdateProfile() {
   );
 }
 
-// Request hooks
-export function useRequests(criteria?: SearchCriteria) {
-  return useApiQuery(
-    ['requests', JSON.stringify(criteria)],
-    () => requestApi.findAll(criteria)
-  );
-}
-
-export function useMyRequests(criteria?: SearchCriteria) {
-  return useApiQuery(
-    ['requests', 'my-requests', JSON.stringify(criteria)],
-    () => requestApi.findMyRequests(criteria)
-  );
-}
-
-export function useCreateRequest() {
-  const queryClient = useQueryClient();
-  
-  return useApiMutation(
-    (request: Partial<Request>) => requestApi.create(request),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['requests'] });
-        toast({
-          title: 'Succès',
-          description: 'Demande créée avec succès',
-        });
-      },
-    }
-  );
-}
 
 // Transaction hooks
 export function useTransactions(criteria?: SearchCriteria) {
@@ -309,34 +272,6 @@ export function useMarkNotificationAsRead() {
   );
 }
 
-// Favorite hooks
-export function useMyFavorites(criteria?: SearchCriteria) {
-  return useApiQuery(
-    ['favorites', 'my-favorites', JSON.stringify(criteria)],
-    () => favoriteApi.findMyFavorites(criteria)
-  );
-}
-
-export function useToggleFavorite() {
-  const queryClient = useQueryClient();
-  
-  return useApiMutation(
-    async ({ productId, isFavorite }: { productId: number; isFavorite: boolean }) => {
-      if (isFavorite) {
-        await favoriteApi.removeFromFavorites(productId);
-      } else {
-        await favoriteApi.addToFavorites(productId);
-      }
-      return !isFavorite;
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['favorites'] });
-        queryClient.invalidateQueries({ queryKey: ['products'] });
-      },
-    }
-  );
-}
 
 // Company Stats hooks
 export function useCompanyStats(companyId: number) {

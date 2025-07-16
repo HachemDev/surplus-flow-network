@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getCompanyStats } from '@/types/jhipster';
+import { getCompanyStats } from '@/types';
 
 const QuickStats = () => {
   const { currentCompany } = useAuth();

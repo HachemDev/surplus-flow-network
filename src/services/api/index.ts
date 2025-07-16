@@ -1,24 +1,20 @@
-// API Services for JHipster Backend Integration
+// API Services for Backend Integration
 
 import { CrudApiService, BaseApiService } from './base';
 import {
   Company,
-  UserProfile,
   Product,
-  Request,
+  UserProfile,
   Transaction,
   Notification,
   CompanyStats,
-  ProductImage,
-  Favorite,
-  Message,
-  JhipsterUser,
+  User,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
   SearchCriteria,
   PaginatedResponse
-} from '@/types/jhipster';
+} from '@/types';
 
 // Authentication Service
 export class AuthApiService extends BaseApiService {
@@ -26,7 +22,7 @@ export class AuthApiService extends BaseApiService {
     return this.post('/api/authenticate', credentials);
   }
 
-  async getAccount(): Promise<JhipsterUser> {
+  async getAccount(): Promise<User> {
     return this.get('/api/account');
   }
 
@@ -99,24 +95,8 @@ export class ProductApiService extends CrudApiService<Product> {
     return this.post(`/api/products/${id}/view`);
   }
 
-  async getProductImages(productId: number): Promise<ProductImage[]> {
-    return this.get(`/api/products/${productId}/images`);
-  }
 }
 
-// Request API Service
-export class RequestApiService extends CrudApiService<Request> {
-  protected basePath = '/api/requests';
-
-  async findMyRequests(criteria?: SearchCriteria): Promise<PaginatedResponse<Request>> {
-    const params = criteria ? this.buildSearchParams(criteria) : new URLSearchParams();
-    return this.get(`/api/requests/my-requests?${params.toString()}`);
-  }
-
-  async findMatchingProducts(requestId: number): Promise<Product[]> {
-    return this.get(`/api/requests/${requestId}/matching-products`);
-  }
-}
 
 // Transaction API Service
 export class TransactionApiService extends CrudApiService<Transaction> {
@@ -184,80 +164,12 @@ export class CompanyStatsApiService extends CrudApiService<CompanyStats> {
   }
 }
 
-// Product Image API Service
-export class ProductImageApiService extends CrudApiService<ProductImage> {
-  protected basePath = '/api/product-images';
-
-  async uploadImage(productId: number, file: File): Promise<ProductImage> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('productId', productId.toString());
-    
-    return this.post('/api/product-images/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-  }
-
-  async setPrimaryImage(imageId: number): Promise<void> {
-    return this.post(`/api/product-images/${imageId}/set-primary`);
-  }
-}
-
-// Favorite API Service
-export class FavoriteApiService extends CrudApiService<Favorite> {
-  protected basePath = '/api/favorites';
-
-  async findMyFavorites(criteria?: SearchCriteria): Promise<PaginatedResponse<Favorite>> {
-    const params = criteria ? this.buildSearchParams(criteria) : new URLSearchParams();
-    return this.get(`/api/favorites/my-favorites?${params.toString()}`);
-  }
-
-  async addToFavorites(productId: number): Promise<Favorite> {
-    return this.post('/api/favorites', { productId });
-  }
-
-  async removeFromFavorites(productId: number): Promise<void> {
-    return this.delete(`/api/favorites/product/${productId}`);
-  }
-
-  async isFavorite(productId: number): Promise<boolean> {
-    try {
-      await this.get(`/api/favorites/product/${productId}`);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-}
-
-// Message API Service
-export class MessageApiService extends CrudApiService<Message> {
-  protected basePath = '/api/messages';
-
-  async findMyMessages(criteria?: SearchCriteria): Promise<PaginatedResponse<Message>> {
-    const params = criteria ? this.buildSearchParams(criteria) : new URLSearchParams();
-    return this.get(`/api/messages/my-messages?${params.toString()}`);
-  }
-
-  async findConversation(userId: number, criteria?: SearchCriteria): Promise<PaginatedResponse<Message>> {
-    const params = criteria ? this.buildSearchParams(criteria) : new URLSearchParams();
-    return this.get(`/api/messages/conversation/${userId}?${params.toString()}`);
-  }
-
-  async markAsRead(messageId: number): Promise<void> {
-    return this.post(`/api/messages/${messageId}/read`);
-  }
-}
 
 // Export service instances
 export const authApi = new AuthApiService();
 export const companyApi = new CompanyApiService();
 export const userProfileApi = new UserProfileApiService();
 export const productApi = new ProductApiService();
-export const requestApi = new RequestApiService();
 export const transactionApi = new TransactionApiService();
 export const notificationApi = new NotificationApiService();
 export const companyStatsApi = new CompanyStatsApiService();
-export const productImageApi = new ProductImageApiService();
-export const favoriteApi = new FavoriteApiService();
-export const messageApi = new MessageApiService();

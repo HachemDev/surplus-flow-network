@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { PaginatedResponse, SearchCriteria } from '@/types/jhipster';
+import { PaginatedResponse, SearchCriteria } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 

@@ -1,9 +1,9 @@
 import React, { createContext, ReactNode } from 'react';
-import { JhipsterUser, UserProfile, Company, UserRole } from '@/types/jhipster';
+import { User, UserProfile, Company, UserRole } from '@/types';
 import { useAuthStatus, useLogout } from '@/hooks/api/useAuth';
 
 interface AuthContextType {
-  currentUser: JhipsterUser | null;
+  currentUser: User | null;
   profile: UserProfile | null;
   currentCompany: Company | null;
   isAuthenticated: boolean;

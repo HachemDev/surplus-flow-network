@@ -13,12 +13,6 @@ export enum CompanyType {
   STARTUP = 'STARTUP'
 }
 
-export enum TransactionType {
-  DONATION = 'DONATION',
-  SALE = 'SALE',
-  RECYCLING = 'RECYCLING'
-}
-
 export enum ProductCategory {
   OFFICE_EQUIPMENT = 'OFFICE_EQUIPMENT',
   TEXTILE = 'TEXTILE',
@@ -30,11 +24,24 @@ export enum ProductCategory {
   OTHER = 'OTHER'
 }
 
+export enum ProductCondition {
+  NEW = 'NEW',
+  LIKE_NEW = 'LIKE_NEW',
+  GOOD = 'GOOD',
+  FAIR = 'FAIR'
+}
+
 export enum ProductStatus {
   AVAILABLE = 'AVAILABLE',
   RESERVED = 'RESERVED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED'
+}
+
+export enum TransactionType {
+  DONATION = 'DONATION',
+  SALE = 'SALE',
+  RECYCLING = 'RECYCLING'
 }
 
 export enum TransactionStatus {
@@ -46,154 +53,187 @@ export enum TransactionStatus {
   CANCELLED = 'CANCELLED'
 }
 
+export enum NotificationType {
+  SURPLUS_MATCH = 'SURPLUS_MATCH',
+  TRANSACTION_UPDATE = 'TRANSACTION_UPDATE',
+  DELIVERY_UPDATE = 'DELIVERY_UPDATE',
+  SYSTEM = 'SYSTEM',
+  NEW_REQUEST = 'NEW_REQUEST'
+}
+
+// Core User Types
 export interface User {
   id: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  login: string;
+  authorities: string[];
+  role?: UserRole;
+  avatar?: string;
+  isVerified?: boolean;
+  createdAt?: string;
+  companyId?: string;
+}
+
+export interface UserProfile {
+  id?: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
-  companyId?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
   avatar?: string;
-  isVerified: boolean;
-  createdAt: Date;
-  lastLogin?: Date;
+  isVerified?: boolean;
+  role: UserRole;
+  email: string;
+  companyId?: string;
+  createdAt?: string;
+  lastLogin?: string;
+  user?: User;
+  company?: Company;
 }
 
 export interface Company {
-  id: string;
+  id?: string;
   name: string;
   type: CompanyType;
-  industry: string;
-  location: string;
-  address: string;
-  phone: string;
-  email: string;
+  industry?: string;
+  description?: string;
   website?: string;
-  description: string;
+  phone?: string;
+  email: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  location?: string;
   logo?: string;
-  rseScore: number;
-  verified: boolean;
-  certifications: string[];
-  createdAt: Date;
-  stats: {
-    totalSurplus: number;
-    totalDonations: number;
-    totalSales: number;
-    co2Saved: number;
-    wasteReduced: number;
-  };
+  rseScore?: number;
+  verified?: boolean;
+  certifications?: string;
+  totalSurplus?: number;
+  totalDonations?: number;
+  totalSales?: number;
+  co2Saved?: number;
+  wasteReduced?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  users?: UserProfile[];
+  products?: Product[];
 }
 
 export interface Product {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   category: ProductCategory;
+  condition: ProductCondition;
+  status: ProductStatus;
   quantity: number;
   unit: string;
-  estimatedValue: number;
+  estimatedValue?: number;
   salePrice?: number;
   location: string;
-  images: string[];
-  status: ProductStatus;
-  companyId: string;
-  company?: Company;
-  tags: string[];
-  condition: 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR';
-  expirationDate?: Date;
+  images?: string;
+  tags?: string;
+  expirationDate?: string;
   pickupInstructions?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  views: number;
-  interests: number;
+  views?: number;
+  interests?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  owner?: User;
+  company?: Company;
+  transactions?: Transaction[];
 }
 
 export interface Transaction {
-  id: string;
+  id?: string;
   type: TransactionType;
-  productId: string;
-  product?: Product;
-  sellerId: string;
-  seller?: Company;
-  buyerId: string;
-  buyer?: Company;
-  requesterId: string;
-  requester?: User;
+  status: TransactionStatus;
   price: number;
   quantity: number;
-  status: TransactionStatus;
   message?: string;
-  documents: {
-    taxCertificate?: string;
-    rseCertificate?: string;
-    contract?: string;
-  };
-  logistics?: Logistics;
-  createdAt: Date;
-  acceptedAt?: Date;
-  completedAt?: Date;
-  cancelledAt?: Date;
+  documents?: string;
+  logistics?: string;
+  createdAt?: string;
+  acceptedAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
   cancelReason?: string;
-}
-
-export interface Logistics {
-  id: string;
-  transactionId: string;
-  carrierName: string;
-  trackingNumber: string;
-  pickupDate?: Date;
-  estimatedDelivery: Date;
-  actualDelivery?: Date;
-  status: TransactionStatus;
-  cost: number;
-  pickupAddress: string;
-  deliveryAddress: string;
-  contactPerson: string;
-  contactPhone: string;
-  specialInstructions?: string;
-  trackingHistory: TrackingEvent[];
-  createdAt: Date;
-}
-
-export interface TrackingEvent {
-  id: string;
-  timestamp: Date;
-  location: string;
-  status: string;
-  description: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-}
-
-export interface RSEImpact {
-  id: string;
-  companyId: string;
-  period: string;
-  co2Saved: number;
-  wasteReducedKg: number;
-  donationsMade: number;
-  salesMade: number;
-  totalValueDonated: number;
-  totalValueSold: number;
-  associationsHelped: number;
-  entrepreneursHelped: number;
-  certificatesIssued: number;
-  createdAt: Date;
+  product?: Product;
+  buyer?: User;
+  seller?: User;
 }
 
 export interface Notification {
-  id: string;
+  id?: string;
   userId: string;
-  type: 'SURPLUS_MATCH' | 'TRANSACTION_UPDATE' | 'DELIVERY_UPDATE' | 'SYSTEM' | 'NEW_REQUEST';
+  type: NotificationType;
   title: string;
   message: string;
-  data?: any;
-  read: boolean;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  createdAt: Date;
-  readAt?: Date;
+  data?: string;
+  read?: boolean;
+  priority?: string;
+  createdAt?: string;
+  readAt?: string;
+  user?: User;
+}
+
+// API Request/Response types
+export interface LoginRequest {
+  username: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface RegisterRequest {
+  login: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  langKey?: string;
+}
+
+export interface LoginResponse {
+  id_token: string;
+}
+
+export interface SearchCriteria {
+  page?: number;
+  size?: number;
+  sort?: string;
+  search?: string;
+  filters?: Record<string, any>;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+// Company Stats
+export interface CompanyStats {
+  totalSurplus: number;
+  totalDonations: number;
+  totalSales: number;
+  co2Saved: number;
+  wasteReduced: number;
+  monthlyData: {
+    month: string;
+    surplus: number;
+    donations: number;
+    sales: number;
+  }[];
 }
 
 export interface SearchFilters {
@@ -220,3 +260,34 @@ export interface AppState {
   loading: boolean;
   error: string | null;
 }
+
+// Helper functions
+export const getUserRole = (user: User): UserRole => {
+  if (user.authorities.includes('ROLE_ADMIN')) return UserRole.ADMIN;
+  if (user.authorities.includes('ROLE_COMPANY')) return UserRole.COMPANY;
+  if (user.authorities.includes('ROLE_ASSOCIATION')) return UserRole.ASSOCIATION;
+  if (user.authorities.includes('ROLE_ENTREPRENEUR')) return UserRole.ENTREPRENEUR;
+  return UserRole.INDIVIDUAL;
+};
+
+export const getCompanyStats = (company?: Company): CompanyStats => {
+  if (!company) {
+    return {
+      totalSurplus: 0,
+      totalDonations: 0,
+      totalSales: 0,
+      co2Saved: 0,
+      wasteReduced: 0,
+      monthlyData: []
+    };
+  }
+
+  return {
+    totalSurplus: company.totalSurplus || 0,
+    totalDonations: company.totalDonations || 0,
+    totalSales: company.totalSales || 0,
+    co2Saved: company.co2Saved || 0,
+    wasteReduced: company.wasteReduced || 0,
+    monthlyData: []
+  };
+};

@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
-import { getCompanyStats } from '@/types/jhipster';
+import { getCompanyStats } from '@/types';
 import { 
   BarChart3, 
   Package, 
