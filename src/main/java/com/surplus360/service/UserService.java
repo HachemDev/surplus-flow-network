@@ -10,6 +10,7 @@ import com.surplus360.security.AuthoritiesConstants;
 import com.surplus360.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -34,7 +33,9 @@ public class UserService {
     private final UserProfileRepository userProfileRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CacheManager cacheManager;
+    
+    @Autowired(required = false)
+    private CacheManager cacheManager;
 
     /**
      * Create a new user with the provided information
@@ -313,10 +314,10 @@ public class UserService {
     }
 
     private void clearUserCaches(User user) {
-        if (cacheManager.getCache("users") != null) {
+        if (cacheManager != null && cacheManager.getCache("users") != null) {
             cacheManager.getCache("users").evict(user.getLogin());
         }
-        if (cacheManager.getCache("users") != null) {
+        if (cacheManager != null && cacheManager.getCache("users") != null) {
             cacheManager.getCache("users").evict(user.getEmail());
         }
     }
