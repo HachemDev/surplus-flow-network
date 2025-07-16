@@ -188,7 +188,8 @@ public class UserController {
         User activatedUser = user.get();
         activatedUser.setActivated(true);
         
-        User result = userService.updateUser(activatedUser);
+        Optional<User> resultOpt = userService.updateUser(activatedUser);
+        User result = resultOpt.orElseThrow(() -> new BadRequestAlertException("Failed to update user", ENTITY_NAME, "updatefailed"));
         
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, id.toString()))
@@ -211,7 +212,8 @@ public class UserController {
         User deactivatedUser = user.get();
         deactivatedUser.setActivated(false);
         
-        User result = userService.updateUser(deactivatedUser);
+        Optional<User> resultOpt = userService.updateUser(deactivatedUser);
+        User result = resultOpt.orElseThrow(() -> new BadRequestAlertException("Failed to update user", ENTITY_NAME, "updatefailed"));
         
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, id.toString()))

@@ -44,7 +44,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findAllByActivatedIsTrue(Pageable pageable);
 
     @Query("select u from User u where u.login <> :login")
-    Page<User> findAllByLoginNot(@Param("login") String login, Pageable pageable);
+    Page<User> findAllByLoginNot(Pageable pageable, @Param("login") String login);
 
     @Query("select u from User u where u.lastLogin < :dateTime")
     List<User> findAllByLastLoginBefore(Instant dateTime);

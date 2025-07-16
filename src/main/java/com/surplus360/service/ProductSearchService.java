@@ -59,7 +59,8 @@ public class ProductSearchService {
         log.debug("Searching products with query: {}", query);
         try {
             Criteria searchCriteria = buildSearchCriteria(query, category, location, minPrice, maxPrice, conditions, verifiedCompaniesOnly);
-            Query searchQuery = new CriteriaQuery(searchCriteria).setPageable(pageable);
+            CriteriaQuery searchQuery = new CriteriaQuery(searchCriteria);
+            searchQuery.setPageable(pageable);
             SearchHits<Product> searchHits = elasticsearchOperations.search(searchQuery, Product.class);
             List<Product> products = searchHits.stream()
                 .map(SearchHit::getContent)
@@ -82,7 +83,8 @@ public class ProductSearchService {
                 .or("description").contains(query)
                 .or("tags").contains(query);
             
-            Query searchQuery = new CriteriaQuery(criteria).setPageable(pageable);
+            CriteriaQuery searchQuery = new CriteriaQuery(criteria);
+            searchQuery.setPageable(pageable);
             SearchHits<Product> searchHits = elasticsearchOperations.search(searchQuery, Product.class);
             
             List<Product> products = searchHits.stream()
@@ -105,7 +107,8 @@ public class ProductSearchService {
         
         try {
             Criteria criteria = new Criteria("category").is(category);
-            Query searchQuery = new CriteriaQuery(criteria).setPageable(pageable);
+            CriteriaQuery searchQuery = new CriteriaQuery(criteria);
+            searchQuery.setPageable(pageable);
             
             SearchHits<Product> searchHits = elasticsearchOperations.search(searchQuery, Product.class);
             
@@ -129,7 +132,8 @@ public class ProductSearchService {
         
         try {
             Criteria criteria = new Criteria("location").contains(location);
-            Query searchQuery = new CriteriaQuery(criteria).setPageable(pageable);
+            CriteriaQuery searchQuery = new CriteriaQuery(criteria);
+            searchQuery.setPageable(pageable);
             
             SearchHits<Product> searchHits = elasticsearchOperations.search(searchQuery, Product.class);
             
@@ -155,7 +159,8 @@ public class ProductSearchService {
             Criteria criteria = new Criteria("title").contains(query)
                 .or("tags").contains(query);
             
-            Query searchQuery = new CriteriaQuery(criteria).setMaxResults(10);
+            CriteriaQuery searchQuery = new CriteriaQuery(criteria);
+            searchQuery.setMaxResults(10);
             SearchHits<Product> searchHits = elasticsearchOperations.search(searchQuery, Product.class);
             
             return searchHits.stream()
