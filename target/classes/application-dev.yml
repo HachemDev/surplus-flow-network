@@ -1,0 +1,124 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:./target/h2db/surplus360;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        use_sql_comments: true
+        enable_lazy_load_no_trans: true
+        cache:
+          use_second_level_cache: true
+          use_query_cache: true
+          region:
+            factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+  
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data-dev.sql
+      continue-on-error: true
+  
+  security:
+    user:
+      name: admin
+      password: admin
+      roles: ADMIN
+  
+  elasticsearch:
+    uris: http://localhost:9200
+    
+  mail:
+    host: localhost
+    port: 1025
+    username: 
+    password: 
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+logging:
+  level:
+    com.surplus360: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.data.elasticsearch: DEBUG
+  file:
+    name: logs/surplus360-dev.log
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+
+app:
+  jwt:
+    secret: devSecretKeyForTesting123456789012345678901234567890
+    expiration: 86400000
+    refresh-expiration: 604800000
+  
+  cors:
+    allowed-origins: 
+      - http://localhost:3000
+      - http://localhost:5173
+      - http://localhost:8080
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+  
+  file-upload:
+    base-path: ./uploads/dev
+    max-size: 50MB
+  
+  notification:
+    email:
+      enabled: false
+    websocket:
+      enabled: true
+  
+  elasticsearch:
+    index-prefix: surplus360-dev
+    refresh-interval: 1s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /api-docs/swagger-config
+    url: /api-docs
+  api-docs:
+    enabled: true
