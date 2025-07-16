@@ -8,9 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
+
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -23,7 +21,6 @@ import java.util.Set;
 
 @Entity
 @Table(name = "product")
-@Document(indexName = "product")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Getter
 @Setter
@@ -36,31 +33,26 @@ public class Product extends AbstractAuditingEntity {
     @NotNull
     @Size(max = 100)
     @Column(name = "title", length = 100, nullable = false)
-    @Field(type = FieldType.Text, analyzer = "standard")
     private String title;
 
     @NotNull
     @Lob
     @Column(name = "description", nullable = false)
-    @Field(type = FieldType.Text, analyzer = "standard")
     private String description;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
-    @Field(type = FieldType.Keyword)
     private ProductCategory category;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "condition", nullable = false)
-    @Field(type = FieldType.Keyword)
     private ProductCondition condition;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    @Field(type = FieldType.Keyword)
     private ProductStatus status;
 
     @NotNull
@@ -84,7 +76,6 @@ public class Product extends AbstractAuditingEntity {
     @NotNull
     @Size(max = 100)
     @Column(name = "location", length = 100, nullable = false)
-    @Field(type = FieldType.Text, analyzer = "standard")
     private String location;
 
     @Lob
@@ -93,7 +84,6 @@ public class Product extends AbstractAuditingEntity {
 
     @Size(max = 500)
     @Column(name = "tags", length = 500)
-    @Field(type = FieldType.Text, analyzer = "standard")
     private String tags;
 
     @Column(name = "expiration_date")

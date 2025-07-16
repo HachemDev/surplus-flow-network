@@ -24,10 +24,8 @@ spring:
         use_sql_comments: true
         enable_lazy_load_no_trans: true
         cache:
-          use_second_level_cache: true
-          use_query_cache: true
-          region:
-            factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+          use_second_level_cache: false
+          use_query_cache: false
   
   security:
     oauth2:
@@ -36,9 +34,7 @@ spring:
           issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080}
   
   cache:
-    type: ehcache
-    ehcache:
-      config: classpath:ehcache.xml
+    type: simple
   
   jackson:
     serialization:
