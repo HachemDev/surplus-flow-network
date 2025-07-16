@@ -2,8 +2,7 @@ package com.surplus360.web.rest;
 
 import com.surplus360.domain.enums.ProductStatus;
 import com.surplus360.service.ProductService;
-import com.surplus360.service.dto.ProductDTO;
-import com.surplus360.service.dto.ProductSearchCriteriaDTO;
+import com.surplus360.domain.Product;
 import com.surplus360.web.rest.errors.BadRequestAlertException;
 import com.surplus360.web.rest.util.HeaderUtil;
 import com.surplus360.web.rest.util.PaginationUtil;
@@ -38,14 +37,14 @@ public class ProductController {
      */
     @PostMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO) throws URISyntaxException {
-        log.debug("REST request to save Product : {}", productDTO);
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) throws URISyntaxException {
+        log.debug("REST request to save Product : {}", product);
         
-        if (productDTO.getId() != null) {
+        if (product.getId() != null) {
             throw new BadRequestAlertException("A new product cannot already have an ID", ENTITY_NAME, "idexists");
         }
         
-        ProductDTO result = productService.createProduct(productDTO);
+        Product result = productService.createProduct(product);
         
         return ResponseEntity.created(new URI("/api/products/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
@@ -57,22 +56,22 @@ public class ProductController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDTO productDTO) {
-        log.debug("REST request to update Product : {}, {}", id, productDTO);
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
+        log.debug("REST request to update Product : {}, {}", id, product);
         
-        if (productDTO.getId() == null) {
+        if (product.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
         
-        if (!id.equals(productDTO.getId())) {
+        if (!id.equals(product.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
         
-        Optional<ProductDTO> result = productService.updateProduct(id, productDTO);
+        Optional<Product> result = productService.updateProduct(id, product);
         
-        return result.map(productDto -> ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, productDto.getId().toString()))
-            .body(productDto))
+        return result.map(updatedProduct -> ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, updatedProduct.getId().toString()))
+            .body(updatedProduct))
             .orElseThrow(() -> new BadRequestAlertException("Product not found", ENTITY_NAME, "notfound"));
     }
 
@@ -81,22 +80,22 @@ public class ProductController {
      */
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ProductDTO> partialUpdateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO) {
-        log.debug("REST request to partial update Product partially : {}, {}", id, productDTO);
+    public ResponseEntity<Product> partialUpdateProduct(@PathVariable Long id, @RequestBody Product product) {
+        log.debug("REST request to partial update Product partially : {}, {}", id, product);
         
-        if (productDTO.getId() == null) {
+        if (product.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
         
-        if (!id.equals(productDTO.getId())) {
+        if (!id.equals(product.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
         
-        Optional<ProductDTO> result = productService.updateProduct(id, productDTO);
+        Optional<Product> result = productService.updateProduct(id, product);
         
-        return result.map(productDto -> ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, productDto.getId().toString()))
-            .body(productDto))
+        return result.map(updatedProduct -> ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, updatedProduct.getId().toString()))
+            .body(updatedProduct))
             .orElseThrow(() -> new BadRequestAlertException("Product not found", ENTITY_NAME, "notfound"));
     }
 
@@ -104,7 +103,7 @@ public class ProductController {
      * GET /products : get all products.
      */
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts(
+    public ResponseEntity<List<Product>> getAllProducts(
         @RequestParam(value = "available", required = false) Boolean available,
         @RequestParam(value = "category", required = false) String category,
         @RequestParam(value = "location", required = false) String location,
@@ -115,7 +114,7 @@ public class ProductController {
     ) {
         log.debug("REST request to get a page of Products");
         
-        Page<ProductDTO> page;
+        Page<Product> page;
         
         if (available != null && available) {
             page = productService.getAllAvailableProducts(pageable);
@@ -139,7 +138,7 @@ public class ProductController {
      * GET /products/search : search products.
      */
     @GetMapping("/search")
-    public ResponseEntity<List<ProductDTO>> searchProducts(
+    public ResponseEntity<List<Product>> searchProducts(
         @RequestParam(value = "query", required = false) String query,
         @RequestParam(value = "category", required = false) String category,
         @RequestParam(value = "location", required = false) String location,
@@ -150,24 +149,17 @@ public class ProductController {
         Pageable pageable
     ) {
         log.debug("REST request to search Products : {}", query);
-        
-        ProductSearchCriteriaDTO criteria = new ProductSearchCriteriaDTO();
-        criteria.setQuery(query);
-        criteria.setLocation(location);
-        criteria.setMinPrice(minPrice);
-        criteria.setMaxPrice(maxPrice);
-        criteria.setSortBy(sortBy);
-        criteria.setVerifiedCompaniesOnly(verified);
-        
-        if (category != null) {
-            try {
-                criteria.setCategory(com.surplus360.domain.enums.ProductCategory.valueOf(category.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestAlertException("Invalid category", ENTITY_NAME, "invalidcategory");
-            }
-        }
-        
-        Page<ProductDTO> page = productService.searchProducts(query, criteria, pageable);
+        // Call the new ProductService signature
+        Page<Product> page = productService.searchProducts(
+            query,
+            category,
+            location,
+            minPrice,
+            maxPrice,
+            null, // conditions (if needed, add as a request param)
+            verified,
+            pageable
+        );
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/products/search");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -176,10 +168,10 @@ public class ProductController {
      * GET /products/latest : get latest products.
      */
     @GetMapping("/latest")
-    public ResponseEntity<List<ProductDTO>> getLatestProducts(Pageable pageable) {
+    public ResponseEntity<List<Product>> getLatestProducts(Pageable pageable) {
         log.debug("REST request to get latest Products");
         
-        Page<ProductDTO> page = productService.getLatestProducts(pageable);
+        Page<Product> page = productService.getLatestProducts(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/products/latest");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -188,10 +180,10 @@ public class ProductController {
      * GET /products/most-viewed : get most viewed products.
      */
     @GetMapping("/most-viewed")
-    public ResponseEntity<List<ProductDTO>> getMostViewedProducts(Pageable pageable) {
+    public ResponseEntity<List<Product>> getMostViewedProducts(Pageable pageable) {
         log.debug("REST request to get most viewed Products");
         
-        Page<ProductDTO> page = productService.getMostViewedProducts(pageable);
+        Page<Product> page = productService.getMostViewedProducts(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/products/most-viewed");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -201,10 +193,10 @@ public class ProductController {
      */
     @GetMapping("/my")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<ProductDTO>> getCurrentUserProducts(Pageable pageable) {
+    public ResponseEntity<List<Product>> getCurrentUserProducts(Pageable pageable) {
         log.debug("REST request to get current user's Products");
         
-        Page<ProductDTO> page = productService.getCurrentUserProducts(pageable);
+        Page<Product> page = productService.getCurrentUserProducts(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/products/my");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -213,10 +205,10 @@ public class ProductController {
      * GET /products/company/{companyId} : get products by company.
      */
     @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<ProductDTO>> getProductsByCompany(@PathVariable Long companyId, Pageable pageable) {
+    public ResponseEntity<List<Product>> getProductsByCompany(@PathVariable Long companyId, Pageable pageable) {
         log.debug("REST request to get Products by company : {}", companyId);
         
-        Page<ProductDTO> page = productService.getProductsByCompany(companyId, pageable);
+        Page<Product> page = productService.getProductsByCompany(companyId, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/products/company/" + companyId);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -225,10 +217,10 @@ public class ProductController {
      * GET /products/owner/{ownerId} : get products by owner.
      */
     @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<List<ProductDTO>> getProductsByOwner(@PathVariable Long ownerId, Pageable pageable) {
+    public ResponseEntity<List<Product>> getProductsByOwner(@PathVariable Long ownerId, Pageable pageable) {
         log.debug("REST request to get Products by owner : {}", ownerId);
         
-        Page<ProductDTO> page = productService.getProductsByOwner(ownerId, pageable);
+        Page<Product> page = productService.getProductsByOwner(ownerId, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/products/owner/" + ownerId);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -238,10 +230,10 @@ public class ProductController {
      */
     @GetMapping("/expiring")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<ProductDTO>> getExpiringProducts(@RequestParam(value = "days", defaultValue = "7") int days) {
+    public ResponseEntity<List<Product>> getExpiringProducts(@RequestParam(value = "days", defaultValue = "7") int days) {
         log.debug("REST request to get expiring Products within {} days", days);
         
-        List<ProductDTO> products = productService.getExpiringProducts(days);
+        List<Product> products = productService.getExpiringProducts(days);
         return ResponseEntity.ok().body(products);
     }
 
@@ -249,11 +241,11 @@ public class ProductController {
      * GET /products/{id} : get the product.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> getProduct(@PathVariable Long id) {
+    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
         log.debug("REST request to get Product : {}", id);
         
-        Optional<ProductDTO> productDTO = productService.getProduct(id);
-        return productDTO.map(product -> ResponseEntity.ok().body(product))
+        Optional<Product> product = productService.getProduct(id);
+        return product.map(productObj -> ResponseEntity.ok().body(productObj))
             .orElseThrow(() -> new BadRequestAlertException("Product not found", ENTITY_NAME, "notfound"));
     }
 
@@ -276,14 +268,14 @@ public class ProductController {
      */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ProductDTO> updateProductStatus(@PathVariable Long id, @RequestParam ProductStatus status) {
+    public ResponseEntity<Product> updateProductStatus(@PathVariable Long id, @RequestParam ProductStatus status) {
         log.debug("REST request to update Product status : {}, {}", id, status);
         
-        Optional<ProductDTO> result = productService.updateProductStatus(id, status);
+        Optional<Product> result = productService.updateProductStatus(id, status);
         
-        return result.map(productDto -> ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, productDto.getId().toString()))
-            .body(productDto))
+        return result.map(updatedProduct -> ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, updatedProduct.getId().toString()))
+            .body(updatedProduct))
             .orElseThrow(() -> new BadRequestAlertException("Product not found", ENTITY_NAME, "notfound"));
     }
 

@@ -1,7 +1,6 @@
 package com.surplus360.service;
 
 import com.surplus360.domain.Product;
-import com.surplus360.service.dto.ProductSearchCriteriaDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,6 +15,7 @@ import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,21 +53,18 @@ public class ProductSearchService {
     /**
      * Search products using Elasticsearch
      */
-    public Page<Product> searchProducts(String query, ProductSearchCriteriaDTO criteria, Pageable pageable) {
+    public Page<Product> searchProducts(String query, String category, String location, 
+                                        BigDecimal minPrice, BigDecimal maxPrice, List<String> conditions, 
+                                        Boolean verifiedCompaniesOnly, Pageable pageable) {
         log.debug("Searching products with query: {}", query);
-        
         try {
-            Criteria searchCriteria = buildSearchCriteria(query, criteria);
+            Criteria searchCriteria = buildSearchCriteria(query, category, location, minPrice, maxPrice, conditions, verifiedCompaniesOnly);
             Query searchQuery = new CriteriaQuery(searchCriteria).setPageable(pageable);
-            
             SearchHits<Product> searchHits = elasticsearchOperations.search(searchQuery, Product.class);
-            
             List<Product> products = searchHits.stream()
                 .map(SearchHit::getContent)
                 .collect(Collectors.toList());
-            
             return new PageImpl<>(products, pageable, searchHits.getTotalHits());
-            
         } catch (Exception e) {
             log.error("Error searching products", e);
             return new PageImpl<>(List.of(), pageable, 0);
@@ -210,51 +207,37 @@ public class ProductSearchService {
     /**
      * Build search criteria based on query and filters
      */
-    private Criteria buildSearchCriteria(String query, ProductSearchCriteriaDTO criteria) {
+    private Criteria buildSearchCriteria(String query, String category, String location, 
+                                        BigDecimal minPrice, BigDecimal maxPrice, List<String> conditions, 
+                                        Boolean verifiedCompaniesOnly) {
         Criteria searchCriteria = new Criteria();
-        
         // Text search
         if (query != null && !query.trim().isEmpty()) {
             searchCriteria = new Criteria("title").contains(query)
                 .or("description").contains(query)
                 .or("tags").contains(query);
         }
-        
-        // Add filters
-        if (criteria != null) {
-            if (criteria.getCategory() != null) {
-                searchCriteria = searchCriteria.and("category").is(criteria.getCategory().name());
-            }
-            
-            if (criteria.getLocation() != null) {
-                searchCriteria = searchCriteria.and("location").contains(criteria.getLocation());
-            }
-            
-            if (criteria.getMinPrice() != null) {
-                searchCriteria = searchCriteria.and("salePrice").greaterThanEqual(criteria.getMinPrice());
-            }
-            
-            if (criteria.getMaxPrice() != null) {
-                searchCriteria = searchCriteria.and("salePrice").lessThanEqual(criteria.getMaxPrice());
-            }
-            
-            if (criteria.getConditions() != null && !criteria.getConditions().isEmpty()) {
-                Criteria conditionCriteria = new Criteria("condition").in(
-                    criteria.getConditions().stream()
-                        .map(Enum::name)
-                        .collect(Collectors.toList())
-                );
-                searchCriteria = searchCriteria.and(conditionCriteria);
-            }
-            
-            if (criteria.getVerifiedCompaniesOnly() != null && criteria.getVerifiedCompaniesOnly()) {
-                searchCriteria = searchCriteria.and("company.verified").is(true);
-            }
+        if (category != null) {
+            searchCriteria = searchCriteria.and("category").is(category);
         }
-        
+        if (location != null) {
+            searchCriteria = searchCriteria.and("location").contains(location);
+        }
+        if (minPrice != null) {
+            searchCriteria = searchCriteria.and("salePrice").greaterThanEqual(minPrice);
+        }
+        if (maxPrice != null) {
+            searchCriteria = searchCriteria.and("salePrice").lessThanEqual(maxPrice);
+        }
+        if (conditions != null && !conditions.isEmpty()) {
+            Criteria conditionCriteria = new Criteria("condition").in(conditions);
+            searchCriteria = searchCriteria.and(conditionCriteria);
+        }
+        if (verifiedCompaniesOnly != null && verifiedCompaniesOnly) {
+            searchCriteria = searchCriteria.and("company.verified").is(true);
+        }
         // Always filter for available products
         searchCriteria = searchCriteria.and("status").is("AVAILABLE");
-        
         return searchCriteria;
     }
 }

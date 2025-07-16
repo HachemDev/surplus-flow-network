@@ -6,7 +6,7 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UserProfileMapper.class, ProductMapper.class})
+@Mapper(componentModel = "spring", uses = {UserProfileMapper.class})
 public interface CompanyMapper {
 
     @Mapping(source = "createdAt", target = "createdDate")

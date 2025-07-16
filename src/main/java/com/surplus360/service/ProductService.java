@@ -7,9 +7,6 @@ import com.surplus360.repository.CompanyRepository;
 import com.surplus360.repository.ProductRepository;
 import com.surplus360.repository.UserRepository;
 import com.surplus360.security.SecurityUtils;
-import com.surplus360.service.dto.ProductDTO;
-import com.surplus360.service.dto.ProductSearchCriteriaDTO;
-import com.surplus360.service.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -35,7 +32,6 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
-    private final ProductMapper productMapper;
     private final ProductSearchService productSearchService;
     private final NotificationService notificationService;
 
@@ -43,8 +39,8 @@ public class ProductService {
      * Create a new product
      */
     @PreAuthorize("hasRole('USER')")
-    public ProductDTO createProduct(ProductDTO productDTO) {
-        log.debug("Request to save Product : {}", productDTO);
+    public Product createProduct(Product product) {
+        log.debug("Request to save Product : {}", product);
         
         Optional<User> currentUser = SecurityUtils.getCurrentUserLogin()
             .flatMap(userRepository::findOneWithAuthoritiesByLogin);
@@ -53,7 +49,6 @@ public class ProductService {
             throw new IllegalStateException("User not found");
         }
         
-        Product product = productMapper.toEntity(productDTO);
         product.setOwner(currentUser.get());
         product.setStatus(ProductStatus.AVAILABLE);
         product.setViews(0);
@@ -74,21 +69,34 @@ public class ProductService {
         notificationService.notifyProductMatches(product);
         
         log.debug("Created Product : {}", product);
-        return productMapper.toDto(product);
+        return product;
     }
 
     /**
      * Update a product
      */
     @PreAuthorize("hasRole('USER')")
-    public Optional<ProductDTO> updateProduct(Long id, ProductDTO productDTO) {
-        log.debug("Request to update Product : {}, {}", id, productDTO);
+    public Optional<Product> updateProduct(Long id, Product product) {
+        log.debug("Request to update Product : {}, {}", id, product);
         
         return productRepository.findById(id)
-            .filter(product -> canUserModifyProduct(product))
+            .filter(this::canUserModifyProduct)
             .map(existingProduct -> {
-                productMapper.partialUpdate(productDTO, existingProduct);
-                existingProduct.setUpdatedAt(Instant.now());
+                // Copy updatable fields from input product to existingProduct
+                existingProduct.setTitle(product.getTitle());
+                existingProduct.setDescription(product.getDescription());
+                existingProduct.setCategory(product.getCategory());
+                existingProduct.setCondition(product.getCondition());
+                existingProduct.setQuantity(product.getQuantity());
+                existingProduct.setUnit(product.getUnit());
+                existingProduct.setEstimatedValue(product.getEstimatedValue());
+                existingProduct.setSalePrice(product.getSalePrice());
+                existingProduct.setLocation(product.getLocation());
+                existingProduct.setImages(product.getImages());
+                existingProduct.setTags(product.getTags());
+                existingProduct.setExpirationDate(product.getExpirationDate());
+                existingProduct.setPickupInstructions(product.getPickupInstructions());
+                existingProduct.setUpdatedAt(java.time.Instant.now());
                 return existingProduct;
             })
             .map(productRepository::save)
@@ -96,7 +104,7 @@ public class ProductService {
                 // Update Elasticsearch index
                 productSearchService.indexProduct(updatedProduct);
                 log.debug("Updated Product : {}", updatedProduct);
-                return productMapper.toDto(updatedProduct);
+                return updatedProduct;
             });
     }
 
@@ -104,21 +112,21 @@ public class ProductService {
      * Update product status
      */
     @PreAuthorize("hasRole('USER')")
-    public Optional<ProductDTO> updateProductStatus(Long id, ProductStatus status) {
+    public Optional<Product> updateProductStatus(Long id, ProductStatus status) {
         log.debug("Request to update Product status : {}, {}", id, status);
         
         return productRepository.findById(id)
-            .filter(product -> canUserModifyProduct(product))
+            .filter(this::canUserModifyProduct)
             .map(product -> {
                 product.setStatus(status);
-                product.setUpdatedAt(Instant.now());
+                product.setUpdatedAt(java.time.Instant.now());
                 return productRepository.save(product);
             })
             .map(updatedProduct -> {
                 // Update Elasticsearch index
                 productSearchService.indexProduct(updatedProduct);
                 log.debug("Updated Product status : {}", updatedProduct);
-                return productMapper.toDto(updatedProduct);
+                return updatedProduct;
             });
     }
 
@@ -127,30 +135,27 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
-    public Page<ProductDTO> getAllProducts(Pageable pageable) {
+    public Page<Product> getAllProducts(Pageable pageable) {
         log.debug("Request to get all Products");
-        return productRepository.findAll(pageable)
-            .map(productMapper::toDto);
+        return productRepository.findAll(pageable);
     }
 
     /**
      * Get all available products
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getAllAvailableProducts(Pageable pageable) {
+    public Page<Product> getAllAvailableProducts(Pageable pageable) {
         log.debug("Request to get all available Products");
-        return productRepository.findAllByStatus(ProductStatus.AVAILABLE, pageable)
-            .map(productMapper::toDto);
+        return productRepository.findAllByStatus(ProductStatus.AVAILABLE, pageable);
     }
 
     /**
      * Get products by owner
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getProductsByOwner(Long ownerId, Pageable pageable) {
+    public Page<Product> getProductsByOwner(Long ownerId, Pageable pageable) {
         log.debug("Request to get Products by owner : {}", ownerId);
-        return productRepository.findAllByOwnerId(ownerId, pageable)
-            .map(productMapper::toDto);
+        return productRepository.findAllByOwnerId(ownerId, pageable);
     }
 
     /**
@@ -158,24 +163,22 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('USER')")
-    public Page<ProductDTO> getCurrentUserProducts(Pageable pageable) {
+    public Page<Product> getCurrentUserProducts(Pageable pageable) {
         log.debug("Request to get current user's Products");
         
         return SecurityUtils.getCurrentUserLogin()
             .flatMap(userRepository::findOneByLogin)
             .map(user -> productRepository.findAllByOwnerId(user.getId(), pageable))
-            .orElseThrow(() -> new IllegalStateException("User not found"))
-            .map(productMapper::toDto);
+            .orElseThrow(() -> new IllegalStateException("User not found"));
     }
 
     /**
      * Get products by company
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getProductsByCompany(Long companyId, Pageable pageable) {
+    public Page<Product> getProductsByCompany(Long companyId, Pageable pageable) {
         log.debug("Request to get Products by company : {}", companyId);
-        return productRepository.findAllByCompanyId(companyId, pageable)
-            .map(productMapper::toDto);
+        return productRepository.findAllByCompanyId(companyId, pageable);
     }
 
     /**
@@ -183,14 +186,14 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "#id")
-    public Optional<ProductDTO> getProduct(Long id) {
+    public Optional<Product> getProduct(Long id) {
         log.debug("Request to get Product : {}", id);
         return productRepository.findById(id)
             .map(product -> {
                 // Increment view count
                 product.setViews(product.getViews() + 1);
                 productRepository.save(product);
-                return productMapper.toDto(product);
+                return product;
             });
     }
 
@@ -216,23 +219,10 @@ public class ProductService {
      * Search products
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> searchProducts(String query, ProductSearchCriteriaDTO criteria, Pageable pageable) {
+    public Page<Product> searchProducts(String query, String category, String location, BigDecimal minPrice, BigDecimal maxPrice, List<String> conditions, Boolean verifiedCompaniesOnly, Pageable pageable) {
         log.debug("Request to search Products : {}", query);
-        
-        if (query != null && !query.trim().isEmpty()) {
-            // Use Elasticsearch for text search
-            return productSearchService.searchProducts(query, criteria, pageable)
-                .map(productMapper::toDto);
-        } else {
-            // Use database filters
-            return productRepository.findAvailableProductsWithFilters(
-                criteria.getCategory(),
-                criteria.getLocation(),
-                criteria.getMinPrice(),
-                criteria.getMaxPrice(),
-                pageable
-            ).map(productMapper::toDto);
-        }
+        // Use Elasticsearch for text search and filters
+        return productSearchService.searchProducts(query, category, location, minPrice, maxPrice, conditions, verifiedCompaniesOnly, pageable);
     }
 
     /**
@@ -240,10 +230,9 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "'latest-' + #pageable.pageNumber + '-' + #pageable.pageSize")
-    public Page<ProductDTO> getLatestProducts(Pageable pageable) {
+    public Page<Product> getLatestProducts(Pageable pageable) {
         log.debug("Request to get latest Products");
-        return productRepository.findLatestAvailableProducts(pageable)
-            .map(productMapper::toDto);
+        return productRepository.findLatestAvailableProducts(pageable);
     }
 
     /**
@@ -251,65 +240,58 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "'most-viewed-' + #pageable.pageNumber + '-' + #pageable.pageSize")
-    public Page<ProductDTO> getMostViewedProducts(Pageable pageable) {
+    public Page<Product> getMostViewedProducts(Pageable pageable) {
         log.debug("Request to get most viewed Products");
-        return productRepository.findMostViewedProducts(pageable)
-            .map(productMapper::toDto);
+        return productRepository.findMostViewedProducts(pageable);
     }
 
     /**
      * Get products from verified companies
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getProductsFromVerifiedCompanies(Pageable pageable) {
+    public Page<Product> getProductsFromVerifiedCompanies(Pageable pageable) {
         log.debug("Request to get Products from verified companies");
-        return productRepository.findLatestFromVerifiedCompanies(pageable)
-            .map(productMapper::toDto);
+        return productRepository.findLatestFromVerifiedCompanies(pageable);
     }
 
     /**
      * Get products by category
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getProductsByCategory(String category, Pageable pageable) {
+    public Page<Product> getProductsByCategory(String category, Pageable pageable) {
         log.debug("Request to get Products by category : {}", category);
         return productRepository.findAllByCategory(
             com.surplus360.domain.enums.ProductCategory.valueOf(category.toUpperCase()),
             pageable
-        ).map(productMapper::toDto);
+        );
     }
 
     /**
      * Get products by location
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getProductsByLocation(String location, Pageable pageable) {
+    public Page<Product> getProductsByLocation(String location, Pageable pageable) {
         log.debug("Request to get Products by location : {}", location);
-        return productRepository.findAllByLocationContaining(location, pageable)
-            .map(productMapper::toDto);
+        return productRepository.findAllByLocationContaining(location, pageable);
     }
 
     /**
      * Get products by price range
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+    public Page<Product> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
         log.debug("Request to get Products by price range : {} - {}", minPrice, maxPrice);
-        return productRepository.findAllBySalePriceBetween(minPrice, maxPrice, pageable)
-            .map(productMapper::toDto);
+        return productRepository.findAllBySalePriceBetween(minPrice, maxPrice, pageable);
     }
 
     /**
      * Get expiring products
      */
     @Transactional(readOnly = true)
-    public List<ProductDTO> getExpiringProducts(int days) {
+    public List<Product> getExpiringProducts(int days) {
         log.debug("Request to get expiring Products within {} days", days);
         LocalDate expirationDate = LocalDate.now().plusDays(days);
-        return productRepository.findAllByExpirationDateBefore(expirationDate)
-            .stream()
-            .map(productMapper::toDto)
-            .toList();
+        return productRepository.findAllByExpirationDateBefore(expirationDate);
     }
 
     /**

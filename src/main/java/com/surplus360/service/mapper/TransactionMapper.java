@@ -6,7 +6,7 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {ProductMapper.class, LogisticsMapper.class})
+@Mapper(componentModel = "spring", uses = {LogisticsMapper.class})
 public interface TransactionMapper {
 
     @Mapping(source = "createdAt", target = "createdDate")
