@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useLogin } from '@/hooks/api/useAuth';
-import { useAuthStatus } from '@/hooks/api/useAuth';
+import { useIsAuthenticated } from '@/hooks/api/useAuth';
 
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuthStatus();
+  const { isAuthenticated } = useIsAuthenticated();
   const loginMutation = useLogin();
   
   const [formData, setFormData] = useState({

@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useContext } from 'react';
 import { User, Company, UserRole } from '@/types';
-import { useIsAuthenticated, useLogout, useUpdateProfile } from '@/hooks/api/useAuth';
+import { useIsAuthenticated, useLogout } from '@/hooks/api/useAuth';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -24,14 +24,15 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { user: currentUser, isAuthenticated, isLoading } = useIsAuthenticated();
   const logoutMutation = useLogout();
-  const updateProfileMutation = useUpdateProfile();
 
   const logout = () => {
     logoutMutation.mutate();
   };
 
   const updateProfile = async (profileData: Partial<User>) => {
-    return updateProfileMutation.mutateAsync(profileData);
+    // Implement profile update logic here if needed
+    // For now, just a placeholder
+    return Promise.resolve();
   };
 
   const hasRole = (role: string): boolean => {
