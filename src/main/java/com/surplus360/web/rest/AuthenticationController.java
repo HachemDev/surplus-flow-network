@@ -4,9 +4,6 @@ import com.surplus360.domain.User;
 import com.surplus360.security.jwt.JWTUtil;
 import com.surplus360.service.EmailService;
 import com.surplus360.service.UserService;
-import com.surplus360.service.dto.JWTTokenDTO;
-import com.surplus360.service.dto.LoginDTO;
-import com.surplus360.service.dto.PasswordResetDTO;
 import com.surplus360.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +35,12 @@ public class AuthenticationController {
      * Authenticate user and return JWT token
      */
     @PostMapping("/login")
-    public ResponseEntity<JWTTokenDTO> authenticate(@Valid @RequestBody LoginDTO loginDTO) {
-        log.debug("REST request to authenticate user: {}", loginDTO.getUsername());
+    public ResponseEntity<TokenResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
+        log.debug("REST request to authenticate user: {}", loginRequest.getUsername());
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -54,7 +51,7 @@ public class AuthenticationController {
             Instant expiresAt = Instant.now().plusSeconds(expiresIn);
 
             // Get user details
-            Optional<User> userOpt = userService.getUserWithAuthoritiesByLogin(loginDTO.getUsername());
+            Optional<User> userOpt = userService.getUserWithAuthoritiesByLogin(loginRequest.getUsername());
             User userEntity = userOpt.orElse(null);
 
             // Update last login
@@ -64,17 +61,17 @@ public class AuthenticationController {
                 userService.updateUser(user);
             }
 
-            JWTTokenDTO tokenDTO = new JWTTokenDTO(accessToken, refreshToken, expiresIn, expiresAt, userEntity);
+            TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken, expiresIn, expiresAt, userEntity);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + accessToken);
 
             return ResponseEntity.ok()
                 .headers(headers)
-                .body(tokenDTO);
+                .body(tokenResponse);
 
         } catch (Exception e) {
-            log.error("Authentication failed for user: {}", loginDTO.getUsername(), e);
+            log.error("Authentication failed for user: {}", loginRequest.getUsername(), e);
             throw new BadRequestAlertException("Invalid credentials", "authentication", "invalidCredentials");
         }
     }
@@ -145,10 +142,10 @@ public class AuthenticationController {
      * Complete password reset
      */
     @PostMapping("/reset-password/finish")
-    public ResponseEntity<Void> finishPasswordReset(@Valid @RequestBody PasswordResetDTO resetDTO) {
-        log.debug("REST request to finish password reset with key: {}", resetDTO.getKey());
+    public ResponseEntity<Void> finishPasswordReset(@Valid @RequestBody PasswordResetRequest resetRequest) {
+        log.debug("REST request to finish password reset with key: {}", resetRequest.getKey());
 
-        Optional<User> user = userService.completePasswordReset(resetDTO.getNewPassword(), resetDTO.getKey());
+        Optional<User> user = userService.completePasswordReset(resetRequest.getNewPassword(), resetRequest.getKey());
         if (user.isEmpty()) {
             throw new BadRequestAlertException("Invalid reset key", "userManagement", "invalidkey");
         }
@@ -179,7 +176,7 @@ public class AuthenticationController {
      * Refresh JWT token
      */
     @PostMapping("/refresh")
-    public ResponseEntity<JWTTokenDTO> refreshToken(@RequestBody TokenRefreshDTO refreshDTO) {
+    public ResponseEntity<TokenResponse> refreshToken(@RequestBody TokenRefreshDTO refreshDTO) {
         log.debug("REST request to refresh JWT token");
 
         try {
@@ -203,9 +200,9 @@ public class AuthenticationController {
             Instant expiresAt = Instant.now().plusSeconds(expiresIn);
 
             User userEntity2 = user;
-            JWTTokenDTO tokenDTO = new JWTTokenDTO(accessToken, newRefreshToken, expiresIn, expiresAt, userEntity2);
+            TokenResponse tokenResponse = new TokenResponse(accessToken, newRefreshToken, expiresIn, expiresAt, userEntity2);
 
-            return ResponseEntity.ok(tokenDTO);
+            return ResponseEntity.ok(tokenResponse);
 
         } catch (Exception e) {
             log.error("Token refresh failed", e);
@@ -280,5 +277,30 @@ public class AuthenticationController {
     @lombok.AllArgsConstructor
     public static class TokenRefreshDTO {
         private String refreshToken;
+    }
+
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class LoginRequest {
+        private String username;
+        private String password;
+    }
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class PasswordResetRequest {
+        private String key;
+        private String newPassword;
+    }
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class TokenResponse {
+        private String accessToken;
+        private String refreshToken;
+        private Long expiresIn;
+        private Instant expiresAt;
+        private User user;
     }
 }

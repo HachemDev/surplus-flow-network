@@ -11,8 +11,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -27,7 +25,6 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
     private final ApplicationProperties applicationProperties;
     private final UserRepository userRepository;
-    private final SpringTemplateEngine templateEngine;
 
     /**
      * Send a simple email
@@ -76,22 +73,6 @@ public class EmailService {
     }
 
     /**
-     * Send email from template
-     */
-    @Async
-    public void sendEmailFromTemplate(String to, String subject, String templateName, Context context) {
-        log.debug("Sending template email to '{}' with template '{}'", to, templateName);
-        
-        try {
-            String htmlContent = templateEngine.process(templateName, context);
-            sendHtmlEmail(to, subject, htmlContent);
-            
-        } catch (Exception e) {
-            log.error("Failed to send template email to {}: {}", to, e.getMessage());
-        }
-    }
-
-    /**
      * Send activation email
      */
     @Async
@@ -103,13 +84,14 @@ public class EmailService {
             return;
         }
         
-        Context context = new Context(Locale.getDefault());
-        context.setVariable("user", user);
-        context.setVariable("activationKey", user.getActivationKey());
-        context.setVariable("baseUrl", getBaseUrl());
-        
         String subject = "Surplus360 - Account Activation";
-        sendEmailFromTemplate(user.getEmail(), subject, "activation-email", context);
+        String content = "Dear " + user.getFirstName() + ",\n\n" +
+                         "Your Surplus360 account has been created. Please click the link below to activate your account:\n" +
+                         getBaseUrl() + "/activate?key=" + user.getActivationKey() + "\n\n" +
+                         "If you did not request this, please ignore this email.\n\n" +
+                         "Best regards,\n" +
+                         "The Surplus360 Team";
+        sendEmail(user.getEmail(), subject, content);
     }
 
     /**
@@ -124,13 +106,14 @@ public class EmailService {
             return;
         }
         
-        Context context = new Context(Locale.getDefault());
-        context.setVariable("user", user);
-        context.setVariable("resetKey", user.getResetKey());
-        context.setVariable("baseUrl", getBaseUrl());
-        
         String subject = "Surplus360 - Password Reset";
-        sendEmailFromTemplate(user.getEmail(), subject, "password-reset-email", context);
+        String content = "Dear " + user.getFirstName() + ",\n\n" +
+                         "You have requested to reset your password. Please click the link below to reset your password:\n" +
+                         getBaseUrl() + "/reset-password?key=" + user.getResetKey() + "\n\n" +
+                         "If you did not request this, please ignore this email.\n\n" +
+                         "Best regards,\n" +
+                         "The Surplus360 Team";
+        sendEmail(user.getEmail(), subject, content);
     }
 
     /**
@@ -145,12 +128,13 @@ public class EmailService {
             return;
         }
         
-        Context context = new Context(Locale.getDefault());
-        context.setVariable("user", user);
-        context.setVariable("baseUrl", getBaseUrl());
-        
         String subject = "Welcome to Surplus360!";
-        sendEmailFromTemplate(user.getEmail(), subject, "welcome-email", context);
+        String content = "Dear " + user.getFirstName() + ",\n\n" +
+                         "Thank you for registering with Surplus360. Your account has been successfully created.\n\n" +
+                         "Please visit our website at " + getBaseUrl() + " to start browsing and selling items.\n\n" +
+                         "Best regards,\n" +
+                         "The Surplus360 Team";
+        sendEmail(user.getEmail(), subject, content);
     }
 
     /**
@@ -172,14 +156,15 @@ public class EmailService {
         }
         
         User user = userOpt.get();
-        Context context = new Context(Locale.getDefault());
-        context.setVariable("user", user);
-        context.setVariable("title", title);
-        context.setVariable("message", message);
-        context.setVariable("baseUrl", getBaseUrl());
-        
         String subject = "Surplus360 - " + title;
-        sendEmailFromTemplate(user.getEmail(), subject, "notification-email", context);
+        String content = "Dear " + user.getFirstName() + ",\n\n" +
+                         "You have received a new notification:\n\n" +
+                         "Title: " + title + "\n" +
+                         "Message: " + message + "\n\n" +
+                         "Please visit your dashboard to view your notifications.\n\n" +
+                         "Best regards,\n" +
+                         "The Surplus360 Team";
+        sendEmail(user.getEmail(), subject, content);
     }
 
     /**
@@ -201,15 +186,14 @@ public class EmailService {
         }
         
         User user = userOpt.get();
-        Context context = new Context(Locale.getDefault());
-        context.setVariable("user", user);
-        context.setVariable("transactionId", transactionId);
-        context.setVariable("status", status);
-        context.setVariable("message", message);
-        context.setVariable("baseUrl", getBaseUrl());
-        
         String subject = "Surplus360 - Transaction Update";
-        sendEmailFromTemplate(user.getEmail(), subject, "transaction-update-email", context);
+        String content = "Dear " + user.getFirstName() + ",\n\n" +
+                         "Your transaction with ID " + transactionId + " has been updated to status: " + status + ".\n\n" +
+                         "Message: " + message + "\n\n" +
+                         "Please visit your dashboard to view your transaction details.\n\n" +
+                         "Best regards,\n" +
+                         "The Surplus360 Team";
+        sendEmail(user.getEmail(), subject, content);
     }
 
     /**
@@ -231,14 +215,13 @@ public class EmailService {
         }
         
         User user = userOpt.get();
-        Context context = new Context(Locale.getDefault());
-        context.setVariable("user", user);
-        context.setVariable("productTitle", productTitle);
-        context.setVariable("productId", productId);
-        context.setVariable("baseUrl", getBaseUrl());
-        
         String subject = "Surplus360 - New Product Match";
-        sendEmailFromTemplate(user.getEmail(), subject, "product-match-email", context);
+        String content = "Dear " + user.getFirstName() + ",\n\n" +
+                         "We have found a potential match for your product: " + productTitle + " (ID: " + productId + ").\n\n" +
+                         "Please review the details and decide if it's a good match for you.\n\n" +
+                         "Best regards,\n" +
+                         "The Surplus360 Team";
+        sendEmail(user.getEmail(), subject, content);
     }
 
     /**
