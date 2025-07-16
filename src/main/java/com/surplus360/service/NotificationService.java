@@ -4,8 +4,6 @@ import com.surplus360.domain.Notification;
 import com.surplus360.domain.Product;
 import com.surplus360.domain.enums.NotificationType;
 import com.surplus360.repository.NotificationRepository;
-import com.surplus360.service.dto.NotificationDTO;
-import com.surplus360.service.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,21 +23,20 @@ import java.util.Optional;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final NotificationMapper notificationMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final EmailService emailService;
 
     /**
      * Send a notification to a user
      */
-    public NotificationDTO sendNotification(String userId, NotificationType type, String title, String message) {
+    public Notification sendNotification(String userId, NotificationType type, String title, String message) {
         return sendNotification(userId, type, title, message, null, "MEDIUM");
     }
 
     /**
      * Send a notification with data and priority
      */
-    public NotificationDTO sendNotification(String userId, NotificationType type, String title, 
+    public Notification sendNotification(String userId, NotificationType type, String title, 
                                           String message, String data, String priority) {
         log.debug("Sending notification to user {} with type {}", userId, type);
         
@@ -55,10 +52,8 @@ public class NotificationService {
         
         notification = notificationRepository.save(notification);
         
-        NotificationDTO notificationDTO = notificationMapper.toDto(notification);
-        
         // Send real-time notification via WebSocket
-        sendWebSocketNotification(userId, notificationDTO);
+        sendWebSocketNotification(userId, notification);
         
         // Send email notification for high priority notifications
         if ("HIGH".equals(priority)) {
@@ -66,27 +61,25 @@ public class NotificationService {
         }
         
         log.debug("Notification sent: {}", notification.getId());
-        return notificationDTO;
+        return notification;
     }
 
     /**
      * Get user notifications
      */
     @Transactional(readOnly = true)
-    public Page<NotificationDTO> getUserNotifications(String userId, Pageable pageable) {
+    public Page<Notification> getUserNotifications(String userId, Pageable pageable) {
         log.debug("Getting notifications for user: {}", userId);
-        return notificationRepository.findAllByUserIdOrderByCreatedAtDesc(userId, pageable)
-            .map(notificationMapper::toDto);
+        return notificationRepository.findAllByUserIdOrderByCreatedAtDesc(userId, pageable);
     }
 
     /**
      * Get unread notifications
      */
     @Transactional(readOnly = true)
-    public Page<NotificationDTO> getUnreadNotifications(String userId, Pageable pageable) {
+    public Page<Notification> getUnreadNotifications(String userId, Pageable pageable) {
         log.debug("Getting unread notifications for user: {}", userId);
-        return notificationRepository.findAllByUserIdAndReadIsFalse(userId, pageable)
-            .map(notificationMapper::toDto);
+        return notificationRepository.findAllByUserIdAndReadIsFalse(userId, pageable);
     }
 
     /**
@@ -112,7 +105,7 @@ public class NotificationService {
                     notificationRepository.save(notification);
                     
                     // Send WebSocket update
-                    sendWebSocketNotificationUpdate(userId, notificationMapper.toDto(notification));
+                    sendWebSocketNotificationUpdate(userId, notification);
                 }
             });
     }
@@ -290,7 +283,7 @@ public class NotificationService {
     /**
      * Send WebSocket notification
      */
-    private void sendWebSocketNotification(String userId, NotificationDTO notification) {
+    private void sendWebSocketNotification(String userId, Notification notification) {
         try {
             messagingTemplate.convertAndSendToUser(userId, "/topic/notifications", notification);
             log.debug("WebSocket notification sent to user: {}", userId);
@@ -302,7 +295,7 @@ public class NotificationService {
     /**
      * Send WebSocket notification update
      */
-    private void sendWebSocketNotificationUpdate(String userId, NotificationDTO notification) {
+    private void sendWebSocketNotificationUpdate(String userId, Notification notification) {
         try {
             messagingTemplate.convertAndSendToUser(userId, "/topic/notifications/update", notification);
             log.debug("WebSocket notification update sent to user: {}", userId);

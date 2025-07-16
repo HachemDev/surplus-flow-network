@@ -7,8 +7,6 @@ import com.surplus360.service.UserService;
 import com.surplus360.service.dto.JWTTokenDTO;
 import com.surplus360.service.dto.LoginDTO;
 import com.surplus360.service.dto.PasswordResetDTO;
-import com.surplus360.service.dto.UserDTO;
-import com.surplus360.service.mapper.UserMapper;
 import com.surplus360.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +32,6 @@ public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
     private final UserService userService;
-    private final UserMapper userMapper;
     private final EmailService emailService;
 
     /**
@@ -58,16 +55,16 @@ public class AuthenticationController {
 
             // Get user details
             Optional<User> userOpt = userService.getUserWithAuthoritiesByLogin(loginDTO.getUsername());
-            UserDTO userDTO = userOpt.map(userMapper::toDto).orElse(null);
+            User userEntity = userOpt.orElse(null);
 
             // Update last login
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
                 user.setLastLogin(Instant.now());
-                userService.updateUser(userMapper.toDto(user));
+                userService.updateUser(user);
             }
 
-            JWTTokenDTO tokenDTO = new JWTTokenDTO(accessToken, refreshToken, expiresIn, expiresAt, userDTO);
+            JWTTokenDTO tokenDTO = new JWTTokenDTO(accessToken, refreshToken, expiresIn, expiresAt, userEntity);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + accessToken);
@@ -86,23 +83,23 @@ public class AuthenticationController {
      * Register a new user
      */
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserDTO userDTO) {
-        log.debug("REST request to register user: {}", userDTO.getLogin());
+    public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
+        log.debug("REST request to register user: {}", user.getLogin());
 
-        if (userDTO.getId() != null) {
+        if (user.getId() != null) {
             throw new BadRequestAlertException("A new user cannot already have an ID", "userManagement", "idexists");
         }
 
-        if (userService.getUserWithAuthoritiesByLogin(userDTO.getLogin().toLowerCase()).isPresent()) {
+        if (userService.getUserWithAuthoritiesByLogin(user.getLogin().toLowerCase()).isPresent()) {
             throw new BadRequestAlertException("Login name already used", "userManagement", "userexists");
         }
 
-        if (userService.getUserWithAuthoritiesByEmail(userDTO.getEmail()).isPresent()) {
+        if (userService.getUserWithAuthoritiesByEmail(user.getEmail()).isPresent()) {
             throw new BadRequestAlertException("Email is already in use", "userManagement", "emailexists");
         }
 
-        User newUser = userService.registerUser(userDTO, "tempPassword123"); // User will need to set password via email
-        UserDTO result = userMapper.toDto(newUser);
+        User newUser = userService.registerUser(user, "tempPassword123"); // User will need to set password via email
+        User result = newUser;
 
         // Send activation email
         emailService.sendActivationEmail(newUser);
@@ -205,8 +202,8 @@ public class AuthenticationController {
             Long expiresIn = jwtUtil.getExpirationTime();
             Instant expiresAt = Instant.now().plusSeconds(expiresIn);
 
-            UserDTO userDTO = userMapper.toDto(user);
-            JWTTokenDTO tokenDTO = new JWTTokenDTO(accessToken, newRefreshToken, expiresIn, expiresAt, userDTO);
+            User userEntity2 = user;
+            JWTTokenDTO tokenDTO = new JWTTokenDTO(accessToken, newRefreshToken, expiresIn, expiresAt, userEntity2);
 
             return ResponseEntity.ok(tokenDTO);
 
@@ -231,12 +228,11 @@ public class AuthenticationController {
      * Get current user account
      */
     @GetMapping("/account")
-    public ResponseEntity<UserDTO> getAccount() {
+    public ResponseEntity<User> getAccount() {
         log.debug("REST request to get current user account");
 
         return userService.getUserWithAuthorities()
-            .map(userMapper::toDto)
-            .map(userDTO -> ResponseEntity.ok().body(userDTO))
+            .map(user -> ResponseEntity.ok().body(user))
             .orElseThrow(() -> new BadRequestAlertException("User could not be found", "userManagement", "usernotfound"));
     }
 
@@ -244,14 +240,14 @@ public class AuthenticationController {
      * Update current user account
      */
     @PostMapping("/account")
-    public ResponseEntity<UserDTO> saveAccount(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<User> saveAccount(@Valid @RequestBody User user) {
         log.debug("REST request to save account for current user");
 
         return userService.getUserWithAuthorities()
-            .map(user -> {
-                userService.updateUser(userDTO.getFirstName(), userDTO.getLastName(), 
-                                     userDTO.getEmail(), userDTO.getLangKey(), userDTO.getImageUrl());
-                return ResponseEntity.ok().body(userMapper.toDto(user));
+            .map(currentUser -> {
+                userService.updateUser(user.getFirstName(), user.getLastName(), 
+                                     user.getEmail(), user.getLangKey(), user.getImageUrl());
+                return ResponseEntity.ok().body(currentUser);
             })
             .orElseThrow(() -> new BadRequestAlertException("User could not be found", "userManagement", "usernotfound"));
     }

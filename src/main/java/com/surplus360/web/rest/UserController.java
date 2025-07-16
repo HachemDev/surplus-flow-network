@@ -2,7 +2,6 @@ package com.surplus360.web.rest;
 
 import com.surplus360.domain.User;
 import com.surplus360.service.UserService;
-import com.surplus360.service.dto.UserDTO;
 import com.surplus360.web.rest.errors.BadRequestAlertException;
 import com.surplus360.web.rest.util.HeaderUtil;
 import com.surplus360.web.rest.util.PaginationUtil;
@@ -36,39 +35,25 @@ public class UserController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) throws URISyntaxException {
-        log.debug("REST request to save User : {}", userDTO);
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) throws URISyntaxException {
+        log.debug("REST request to save User : {}", user);
         
-        if (userDTO.getId() != null) {
+        if (user.getId() != null) {
             throw new BadRequestAlertException("A new user cannot already have an ID", ENTITY_NAME, "idexists");
         }
         
-        if (userService.getUserWithAuthoritiesByLogin(userDTO.getLogin().toLowerCase()).isPresent()) {
+        if (userService.getUserWithAuthoritiesByLogin(user.getLogin().toLowerCase()).isPresent()) {
             throw new BadRequestAlertException("Login name already used", ENTITY_NAME, "userexists");
         }
         
-        if (userService.getUserWithAuthoritiesByEmail(userDTO.getEmail()).isPresent()) {
+        if (userService.getUserWithAuthoritiesByEmail(user.getEmail()).isPresent()) {
             throw new BadRequestAlertException("Email is already in use", ENTITY_NAME, "emailexists");
         }
         
-        User newUser = userService.createUser(userDTO);
-        UserDTO result = new UserDTO(
-            newUser.getId(),
-            newUser.getLogin(),
-            newUser.getFirstName(),
-            newUser.getLastName(),
-            newUser.getEmail(),
-            newUser.getImageUrl(),
-            newUser.isActivated(),
-            newUser.getLangKey(),
-            newUser.getRole(),
-            newUser.getCreatedAt(),
-            newUser.getLastLogin()
-        );
-        
-        return ResponseEntity.created(new URI("/api/users/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        User newUser = userService.createUser(user);
+        return ResponseEntity.created(new URI("/api/users/" + newUser.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, newUser.getId().toString()))
+            .body(newUser);
     }
 
     /**
@@ -76,22 +61,22 @@ public class UserController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO userDTO) {
-        log.debug("REST request to update User : {}, {}", id, userDTO);
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+        log.debug("REST request to update User : {}, {}", id, user);
         
-        if (userDTO.getId() == null) {
+        if (user.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
         
-        if (!id.equals(userDTO.getId())) {
+        if (!id.equals(user.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
         
-        Optional<UserDTO> updatedUser = userService.updateUser(userDTO);
+        Optional<User> updatedUser = userService.updateUser(user);
         
-        return updatedUser.map(user -> ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, user.getId().toString()))
-            .body(user))
+        return updatedUser.map(u -> ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, u.getId().toString()))
+            .body(u))
             .orElseThrow(() -> new BadRequestAlertException("User not found", ENTITY_NAME, "notfound"));
     }
 
@@ -100,13 +85,13 @@ public class UserController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserDTO>> getAllUsers(
+    public ResponseEntity<List<User>> getAllUsers(
         @RequestParam(value = "activated", required = false) Boolean activated,
         Pageable pageable
     ) {
         log.debug("REST request to get all Users");
         
-        Page<UserDTO> page = userService.getAllManagedUsers(pageable);
+        Page<User> page = userService.getAllManagedUsers(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/users");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -115,10 +100,10 @@ public class UserController {
      * GET /users/public : get all public users
      */
     @GetMapping("/public")
-    public ResponseEntity<List<UserDTO>> getAllPublicUsers(Pageable pageable) {
+    public ResponseEntity<List<User>> getAllPublicUsers(Pageable pageable) {
         log.debug("REST request to get all public Users");
         
-        Page<UserDTO> page = userService.getAllPublicUsers(pageable);
+        Page<User> page = userService.getAllPublicUsers(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/users/public");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -128,24 +113,11 @@ public class UserController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
         log.debug("REST request to get User : {}", id);
         
         return userService.getUserWithAuthorities(id)
-            .map(user -> new UserDTO(
-                user.getId(),
-                user.getLogin(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getImageUrl(),
-                user.isActivated(),
-                user.getLangKey(),
-                user.getRole(),
-                user.getCreatedAt(),
-                user.getLastLogin()
-            ))
-            .map(userDTO -> ResponseEntity.ok().body(userDTO))
+            .map(user -> ResponseEntity.ok().body(user))
             .orElseThrow(() -> new BadRequestAlertException("User not found", ENTITY_NAME, "notfound"));
     }
 
@@ -154,24 +126,11 @@ public class UserController {
      */
     @GetMapping("/login/{login}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> getUserByLogin(@PathVariable String login) {
+    public ResponseEntity<User> getUserByLogin(@PathVariable String login) {
         log.debug("REST request to get User by login : {}", login);
         
         return userService.getUserWithAuthoritiesByLogin(login)
-            .map(user -> new UserDTO(
-                user.getId(),
-                user.getLogin(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getImageUrl(),
-                user.isActivated(),
-                user.getLangKey(),
-                user.getRole(),
-                user.getCreatedAt(),
-                user.getLastLogin()
-            ))
-            .map(userDTO -> ResponseEntity.ok().body(userDTO))
+            .map(user -> ResponseEntity.ok().body(user))
             .orElseThrow(() -> new BadRequestAlertException("User not found", ENTITY_NAME, "notfound"));
     }
 
@@ -218,7 +177,7 @@ public class UserController {
      */
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> activateUser(@PathVariable Long id) {
+    public ResponseEntity<User> activateUser(@PathVariable Long id) {
         log.debug("REST request to activate User : {}", id);
         
         Optional<User> user = userService.getUserWithAuthorities(id);
@@ -229,25 +188,11 @@ public class UserController {
         User activatedUser = user.get();
         activatedUser.setActivated(true);
         
-        UserDTO userDTO = new UserDTO(
-            activatedUser.getId(),
-            activatedUser.getLogin(),
-            activatedUser.getFirstName(),
-            activatedUser.getLastName(),
-            activatedUser.getEmail(),
-            activatedUser.getImageUrl(),
-            activatedUser.isActivated(),
-            activatedUser.getLangKey(),
-            activatedUser.getRole(),
-            activatedUser.getCreatedAt(),
-            activatedUser.getLastLogin()
-        );
-        
-        userService.updateUser(userDTO);
+        User result = userService.updateUser(activatedUser);
         
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, id.toString()))
-            .body(userDTO);
+            .body(result);
     }
 
     /**
@@ -255,7 +200,7 @@ public class UserController {
      */
     @PutMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> deactivateUser(@PathVariable Long id) {
+    public ResponseEntity<User> deactivateUser(@PathVariable Long id) {
         log.debug("REST request to deactivate User : {}", id);
         
         Optional<User> user = userService.getUserWithAuthorities(id);
@@ -266,25 +211,11 @@ public class UserController {
         User deactivatedUser = user.get();
         deactivatedUser.setActivated(false);
         
-        UserDTO userDTO = new UserDTO(
-            deactivatedUser.getId(),
-            deactivatedUser.getLogin(),
-            deactivatedUser.getFirstName(),
-            deactivatedUser.getLastName(),
-            deactivatedUser.getEmail(),
-            deactivatedUser.getImageUrl(),
-            deactivatedUser.isActivated(),
-            deactivatedUser.getLangKey(),
-            deactivatedUser.getRole(),
-            deactivatedUser.getCreatedAt(),
-            deactivatedUser.getLastLogin()
-        );
-        
-        userService.updateUser(userDTO);
+        User result = userService.updateUser(deactivatedUser);
         
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, id.toString()))
-            .body(userDTO);
+            .body(result);
     }
 
     /**
@@ -292,7 +223,7 @@ public class UserController {
      */
     @GetMapping("/search")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserDTO>> searchUsers(
+    public ResponseEntity<List<User>> searchUsers(
         @RequestParam(value = "query") String query,
         Pageable pageable
     ) {
@@ -300,7 +231,7 @@ public class UserController {
         
         // This would require additional implementation in UserService
         // For now, return all users
-        Page<UserDTO> page = userService.getAllManagedUsers(pageable);
+        Page<User> page = userService.getAllManagedUsers(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/users/search");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }

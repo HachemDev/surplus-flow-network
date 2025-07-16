@@ -2,7 +2,6 @@ package com.surplus360.web.rest;
 
 import com.surplus360.domain.enums.NotificationType;
 import com.surplus360.service.NotificationService;
-import com.surplus360.service.dto.NotificationDTO;
 import com.surplus360.web.rest.errors.BadRequestAlertException;
 import com.surplus360.web.rest.util.HeaderUtil;
 import com.surplus360.web.rest.util.PaginationUtil;
@@ -19,6 +18,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.surplus360.domain.Notification;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -33,7 +33,7 @@ public class NotificationController {
      */
     @GetMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<NotificationDTO>> getAllNotifications(
+    public ResponseEntity<List<Notification>> getAllNotifications(
         @RequestParam(value = "read", required = false) Boolean read,
         @RequestParam(value = "type", required = false) String type,
         @RequestParam(value = "priority", required = false) String priority,
@@ -43,7 +43,7 @@ public class NotificationController {
         log.debug("REST request to get notifications for user: {}", principal.getName());
         
         String userId = principal.getName();
-        Page<NotificationDTO> page;
+        Page<Notification> page;
         
         if (read != null && !read) {
             page = notificationService.getUnreadNotifications(userId, pageable);
@@ -126,10 +126,10 @@ public class NotificationController {
      */
     @PostMapping("/send")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<NotificationDTO> sendNotification(@RequestBody NotificationRequest request) {
+    public ResponseEntity<Notification> sendNotification(@RequestBody NotificationRequest request) {
         log.debug("REST request to send notification to user: {}", request.getUserId());
         
-        NotificationDTO notification = notificationService.sendNotification(
+        Notification notification = notificationService.sendNotification(
             request.getUserId(),
             request.getType(),
             request.getTitle(),
