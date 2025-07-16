@@ -7,7 +7,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "com.surplus360.repository")
+@EnableJpaRepositories(
+    basePackages = "com.surplus360.repository",
+    excludeFilters = @org.springframework.context.annotation.ComponentScan.Filter(
+        type = org.springframework.context.annotation.FilterType.REGEX, 
+        pattern = ".*Elasticsearch.*"
+    )
+)
 @EntityScan(basePackages = "com.surplus360.domain")
 public class DatabaseConfiguration {
 }

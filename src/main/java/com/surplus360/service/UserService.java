@@ -10,7 +10,6 @@ import com.surplus360.security.AuthoritiesConstants;
 import com.surplus360.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,9 +32,7 @@ public class UserService {
     private final UserProfileRepository userProfileRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
-    
-    @Autowired(required = false)
-    private CacheManager cacheManager;
+    private final CacheManager cacheManager;
 
     /**
      * Create a new user with the provided information
@@ -314,10 +311,10 @@ public class UserService {
     }
 
     private void clearUserCaches(User user) {
-        if (cacheManager != null && cacheManager.getCache("users") != null) {
+        if (cacheManager.getCache("users") != null) {
             cacheManager.getCache("users").evict(user.getLogin());
         }
-        if (cacheManager != null && cacheManager.getCache("users") != null) {
+        if (cacheManager.getCache("users") != null) {
             cacheManager.getCache("users").evict(user.getEmail());
         }
     }
