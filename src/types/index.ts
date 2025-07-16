@@ -1,4 +1,6 @@
+// Simplified Type System - No DTOs, Direct Domain Types
 
+// Enums
 export enum UserRole {
   ADMIN = 'ADMIN',
   COMPANY = 'COMPANY',
@@ -10,190 +12,302 @@ export enum UserRole {
 export enum CompanyType {
   BUSINESS = 'BUSINESS',
   ASSOCIATION = 'ASSOCIATION',
-  STARTUP = 'STARTUP'
-}
-
-export enum TransactionType {
-  DONATION = 'DONATION',
-  SALE = 'SALE',
-  RECYCLING = 'RECYCLING'
+  STARTUP = 'STARTUP',
+  NGO = 'NGO',
+  COOPERATIVE = 'COOPERATIVE'
 }
 
 export enum ProductCategory {
-  OFFICE_EQUIPMENT = 'OFFICE_EQUIPMENT',
-  TEXTILE = 'TEXTILE',
-  FOOD = 'FOOD',
-  FURNITURE = 'FURNITURE',
   ELECTRONICS = 'ELECTRONICS',
-  CONSTRUCTION_MATERIALS = 'CONSTRUCTION_MATERIALS',
-  RECYCLED_MATERIALS = 'RECYCLED_MATERIALS',
+  FURNITURE = 'FURNITURE',
+  CLOTHING = 'CLOTHING',
+  FOOD = 'FOOD',
+  BOOKS = 'BOOKS',
+  OFFICE_SUPPLIES = 'OFFICE_SUPPLIES',
+  MEDICAL = 'MEDICAL',
+  CONSTRUCTION = 'CONSTRUCTION',
+  AUTOMOTIVE = 'AUTOMOTIVE',
   OTHER = 'OTHER'
+}
+
+export enum ProductCondition {
+  NEW = 'NEW',
+  LIKE_NEW = 'LIKE_NEW',
+  GOOD = 'GOOD',
+  FAIR = 'FAIR',
+  POOR = 'POOR'
 }
 
 export enum ProductStatus {
   AVAILABLE = 'AVAILABLE',
   RESERVED = 'RESERVED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED'
+  DONATED = 'DONATED',
+  SOLD = 'SOLD',
+  EXPIRED = 'EXPIRED',
+  DRAFT = 'DRAFT'
+}
+
+export enum TransactionType {
+  DONATION = 'DONATION',
+  SALE = 'SALE',
+  PURCHASE = 'PURCHASE',
+  REQUEST = 'REQUEST'
 }
 
 export enum TransactionStatus {
   PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  IN_TRANSIT = 'IN_TRANSIT',
-  DELIVERED = 'DELIVERED',
+  IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED'
+}
+
+export enum NotificationType {
+  INFO = 'INFO',
+  SUCCESS = 'SUCCESS',
+  WARNING = 'WARNING',
+  ERROR = 'ERROR'
+}
+
+export enum NotificationStatus {
+  UNREAD = 'UNREAD',
+  READ = 'READ',
+  ARCHIVED = 'ARCHIVED'
+}
+
+export enum RequestType {
+  DONATION = 'DONATION',
+  PURCHASE = 'PURCHASE'
+}
+
+export enum RequestStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  FULFILLED = 'FULFILLED',
   CANCELLED = 'CANCELLED'
 }
 
+// Core Domain Types
 export interface User {
-  id: string;
+  id: number;
+  login: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  companyId?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
   avatar?: string;
+  role: UserRole;
   isVerified: boolean;
-  createdAt: Date;
-  lastLogin?: Date;
+  activated: boolean;
+  companyId?: number;
+  company?: Company;
+  createdAt: string;
+  lastLogin?: string;
+  authorities: string[];
 }
 
 export interface Company {
-  id: string;
+  id: number;
   name: string;
   type: CompanyType;
-  industry: string;
-  location: string;
-  address: string;
-  phone: string;
-  email: string;
+  industry?: string;
+  description?: string;
   website?: string;
-  description: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  location?: string;
   logo?: string;
-  rseScore: number;
+  rseScore?: number;
   verified: boolean;
-  certifications: string[];
-  createdAt: Date;
-  stats: {
-    totalSurplus: number;
-    totalDonations: number;
-    totalSales: number;
-    co2Saved: number;
-    wasteReduced: number;
-  };
+  certifications?: string;
+  createdAt: string;
+  updatedAt?: string;
+  users?: User[];
+  products?: Product[];
+  requests?: Request[];
+  stats: CompanyStats;
 }
 
 export interface Product {
-  id: string;
+  id: number;
+  title: string;
+  description: string;
+  category: ProductCategory;
+  condition: ProductCondition;
+  status: ProductStatus;
+  quantity: number;
+  originalPrice?: number;
+  donationPrice?: number;
+  salePrice?: number;
+  location?: string;
+  availableFrom?: string;
+  availableUntil?: string;
+  images: string[];
+  tags: string[];
+  weight?: number;
+  dimensions?: string;
+  pickupOnly: boolean;
+  deliveryAvailable: boolean;
+  deliveryRadius?: number;
+  deliveryCost?: number;
+  createdAt: string;
+  updatedAt?: string;
+  viewCount: number;
+  favoriteCount: number;
+  owner?: User;
+  company?: Company;
+  transactions?: Transaction[];
+  isFavorite?: boolean;
+}
+
+export interface Request {
+  id: number;
+  type: RequestType;
   title: string;
   description: string;
   category: ProductCategory;
   quantity: number;
-  unit: string;
-  estimatedValue: number;
-  salePrice?: number;
-  location: string;
-  images: string[];
-  status: ProductStatus;
-  companyId: string;
-  company?: Company;
+  maxPrice?: number;
+  urgencyLevel: number;
+  location?: string;
+  deliveryRequired: boolean;
+  status: RequestStatus;
+  reason?: string;
+  validUntil?: string;
   tags: string[];
-  condition: 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR';
-  expirationDate?: Date;
-  pickupInstructions?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  views: number;
-  interests: number;
+  createdAt: string;
+  updatedAt?: string;
+  requester?: User;
+  company?: Company;
+  transactions?: Transaction[];
 }
 
 export interface Transaction {
-  id: string;
+  id: number;
   type: TransactionType;
-  productId: string;
-  product?: Product;
-  sellerId: string;
-  seller?: Company;
-  buyerId: string;
-  buyer?: Company;
-  requesterId: string;
-  requester?: User;
-  price: number;
+  status: TransactionStatus;
   quantity: number;
-  status: TransactionStatus;
-  message?: string;
-  documents: {
-    taxCertificate?: string;
-    rseCertificate?: string;
-    contract?: string;
-  };
-  logistics?: Logistics;
-  createdAt: Date;
-  acceptedAt?: Date;
-  completedAt?: Date;
-  cancelledAt?: Date;
-  cancelReason?: string;
-}
-
-export interface Logistics {
-  id: string;
-  transactionId: string;
-  carrierName: string;
-  trackingNumber: string;
-  pickupDate?: Date;
-  estimatedDelivery: Date;
-  actualDelivery?: Date;
-  status: TransactionStatus;
-  cost: number;
-  pickupAddress: string;
-  deliveryAddress: string;
-  contactPerson: string;
-  contactPhone: string;
-  specialInstructions?: string;
-  trackingHistory: TrackingEvent[];
-  createdAt: Date;
-}
-
-export interface TrackingEvent {
-  id: string;
-  timestamp: Date;
-  location: string;
-  status: string;
-  description: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-}
-
-export interface RSEImpact {
-  id: string;
-  companyId: string;
-  period: string;
-  co2Saved: number;
-  wasteReducedKg: number;
-  donationsMade: number;
-  salesMade: number;
-  totalValueDonated: number;
-  totalValueSold: number;
-  associationsHelped: number;
-  entrepreneursHelped: number;
-  certificatesIssued: number;
-  createdAt: Date;
+  unitPrice?: number;
+  totalAmount?: number;
+  deliveryMethod?: string;
+  deliveryAddress?: string;
+  deliveryDate?: string;
+  notes?: string;
+  rating?: number;
+  review?: string;
+  createdAt: string;
+  completedAt?: string;
+  cancelledAt?: string;
+  refundedAt?: string;
+  product?: Product;
+  request?: Request;
+  buyer?: User;
+  seller?: User;
 }
 
 export interface Notification {
-  id: string;
-  userId: string;
-  type: 'SURPLUS_MATCH' | 'TRANSACTION_UPDATE' | 'DELIVERY_UPDATE' | 'SYSTEM' | 'NEW_REQUEST';
+  id: number;
   title: string;
   message: string;
+  type: NotificationType;
+  status: NotificationStatus;
   data?: any;
-  read: boolean;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  createdAt: Date;
-  readAt?: Date;
+  actionUrl?: string;
+  createdAt: string;
+  readAt?: string;
+  user?: User;
+}
+
+export interface CompanyStats {
+  id: number;
+  totalSurplus: number;
+  totalDonations: number;
+  totalSales: number;
+  co2Saved: number;
+  wasteReduced: number;
+  beneficiariesReached: number;
+  month?: number;
+  year?: number;
+  createdAt: string;
+  company?: Company;
+}
+
+export interface Favorite {
+  id: number;
+  createdAt: string;
+  user?: User;
+  product?: Product;
+}
+
+export interface Message {
+  id: number;
+  subject?: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  readAt?: string;
+  sender?: User;
+  recipient?: User;
+}
+
+// API Response Types
+export interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+  empty: boolean;
+}
+
+// API Request Types
+export interface LoginRequest {
+  username: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
+
+export interface RegisterRequest {
+  login: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+// Search and Filter Types
+export interface SearchCriteria {
+  page?: number;
+  size?: number;
+  sort?: string[];
+  category?: ProductCategory;
+  status?: ProductStatus;
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  searchTerm?: string;
 }
 
 export interface SearchFilters {
@@ -203,12 +317,13 @@ export interface SearchFilters {
     min: number;
     max: number;
   };
-  condition?: string[];
+  condition?: ProductCondition[];
   transactionType?: TransactionType[];
   tags?: string[];
   sortBy?: 'NEWEST' | 'PRICE_LOW' | 'PRICE_HIGH' | 'DISTANCE' | 'RELEVANCE';
 }
 
+// Application State
 export interface AppState {
   currentUser: User | null;
   isAuthenticated: boolean;
@@ -220,3 +335,60 @@ export interface AppState {
   loading: boolean;
   error: string | null;
 }
+
+// Utility Types
+export type CreateProductData = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'viewCount' | 'favoriteCount' | 'owner' | 'company' | 'transactions'>;
+export type UpdateProductData = Partial<CreateProductData>;
+export type CreateCompanyData = Omit<Company, 'id' | 'createdAt' | 'updatedAt' | 'users' | 'products' | 'requests' | 'stats'>;
+export type UpdateCompanyData = Partial<CreateCompanyData>;
+export type CreateRequestData = Omit<Request, 'id' | 'createdAt' | 'updatedAt' | 'requester' | 'company' | 'transactions'>;
+export type UpdateRequestData = Partial<CreateRequestData>;
+
+// Helper Functions
+export const getUserRole = (user: User): UserRole => {
+  if (user.authorities.includes('ROLE_ADMIN')) return UserRole.ADMIN;
+  if (user.authorities.includes('ROLE_COMPANY')) return UserRole.COMPANY;
+  if (user.authorities.includes('ROLE_ASSOCIATION')) return UserRole.ASSOCIATION;
+  if (user.authorities.includes('ROLE_ENTREPRENEUR')) return UserRole.ENTREPRENEUR;
+  return UserRole.INDIVIDUAL;
+};
+
+export const getCompanyStats = (company: Company): {
+  totalSurplus: number;
+  totalDonations: number;
+  co2Saved: number;
+  wasteReduced: number;
+} => {
+  const stats = company.stats;
+  return {
+    totalSurplus: stats?.totalSurplus || 0,
+    totalDonations: stats?.totalDonations || 0,
+    co2Saved: stats?.co2Saved || 0,
+    wasteReduced: stats?.wasteReduced || 0,
+  };
+};
+
+export const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(price);
+};
+
+export const formatDate = (date: string): string => {
+  return new Intl.DateTimeFormat('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(date));
+};
+
+export const formatDateTime = (date: string): string => {
+  return new Intl.DateTimeFormat('fr-FR', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(date));
+};

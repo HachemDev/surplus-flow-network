@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getCompanyStats } from '@/types/jhipster';
+import { getCompanyStats } from '@/types';
 
 const QuickStats = () => {
   const { currentCompany } = useAuth();
 
   if (!currentCompany) return null;
 
-  const stats = getCompanyStats(currentCompany.stats);
+  const stats = getCompanyStats(currentCompany);
 
   return (
     <div className="hidden md:flex items-center gap-6 text-sm">

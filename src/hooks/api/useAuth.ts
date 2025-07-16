@@ -1,45 +1,38 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
-import { authApi, userProfileApi } from '@/services/api';
-import { LoginRequest, RegisterRequest, JhipsterUser, UserProfile } from '@/types/jhipster';
+import { authApi } from '@/services/api';
+import { LoginRequest, RegisterRequest, User } from '@/types';
 
 export function useLogin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (credentials: LoginRequest) => {
-      const response = await authApi.login(credentials);
-      
-      // Store the token based on rememberMe preference
+    mutationFn: (credentials: LoginRequest) => authApi.login(credentials),
+    onSuccess: (response) => {
+      // Store the token
       if (credentials.rememberMe) {
-        localStorage.setItem('id_token', response.id_token);
-        sessionStorage.removeItem('id_token');
+        localStorage.setItem('auth_token', response.token);
       } else {
-        sessionStorage.setItem('id_token', response.id_token);
-        localStorage.removeItem('id_token');
+        sessionStorage.setItem('auth_token', response.token);
       }
 
-      return response;
-    },
-    onSuccess: () => {
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['auth', 'account'] });
-      queryClient.invalidateQueries({ queryKey: ['user-profile', 'me'] });
-      
+      // Update the query cache with user data
+      queryClient.setQueryData(['auth', 'current-user'], response.user);
+
       toast({
         title: 'Connexion réussie',
-        description: 'Bienvenue !',
+        description: `Bienvenue ${response.user.firstName || response.user.login}!`,
       });
-      
+
+      // Redirect to dashboard
       navigate('/dashboard');
     },
     onError: (error: any) => {
-      console.error('Login error:', error);
       toast({
         title: 'Erreur de connexion',
-        description: error.response?.data?.message || 'Identifiants incorrects',
+        description: error.message || 'Identifiants invalides',
         variant: 'destructive',
       });
     },
@@ -51,38 +44,29 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: (userInfo: RegisterRequest) => authApi.register(userInfo),
-    onSuccess: () => {
+    onSuccess: (user) => {
       toast({
         title: 'Inscription réussie',
-        description: 'Votre compte a été créé. Vous pouvez maintenant vous connecter.',
+        description: `Bienvenue ${user.firstName || user.login}! Vous pouvez maintenant vous connecter.`,
       });
+
+      // Redirect to login page
       navigate('/login');
     },
     onError: (error: any) => {
-      console.error('Registration error:', error);
       toast({
         title: 'Erreur d\'inscription',
-        description: error.response?.data?.message || 'Une erreur est survenue lors de l\'inscription',
+        description: error.message || 'Une erreur est survenue lors de l\'inscription',
         variant: 'destructive',
       });
     },
   });
 }
 
-export function useAccount() {
+export function useCurrentUser() {
   return useQuery({
-    queryKey: ['auth', 'account'],
-    queryFn: () => authApi.getAccount(),
-    retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
-}
-
-export function useUserProfile() {
-  return useQuery({
-    queryKey: ['user-profile', 'me'],
-    queryFn: () => userProfileApi.getMyProfile(),
+    queryKey: ['auth', 'current-user'],
+    queryFn: () => authApi.getCurrentUser(),
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -93,73 +77,62 @@ export function useLogout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: () => authApi.logout(),
+    onSuccess: () => {
       // Clear tokens
-      localStorage.removeItem('id_token');
-      sessionStorage.removeItem('id_token');
-      
+      localStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_token');
+
       // Clear all cached data
       queryClient.clear();
+
+      toast({
+        title: 'Déconnexion réussie',
+        description: 'À bientôt!',
+      });
+
+      // Redirect to login page
+      navigate('/login');
     },
-    onSuccess: () => {
+    onError: (error: any) => {
+      // Even if logout fails on server, clear local data
+      localStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_token');
+      queryClient.clear();
+      navigate('/login');
+
       toast({
         title: 'Déconnexion',
-        description: 'Vous avez été déconnecté avec succès',
+        description: 'Vous avez été déconnecté',
+        variant: 'destructive',
       });
-      navigate('/login');
     },
   });
 }
 
-export function useAuthStatus() {
-  const { data: account, isLoading: accountLoading, error: accountError } = useAccount();
-  const { data: profile, isLoading: profileLoading } = useUserProfile();
-
-  const isAuthenticated = !!account && !accountError;
-  const isLoading = accountLoading || (isAuthenticated && profileLoading);
-
-  const hasRole = (role: string): boolean => {
-    return account?.authorities?.includes(role) || false;
-  };
-
-  const hasAnyAuthority = (authorities: string[]): boolean => {
-    return authorities.some(authority => hasRole(authority));
-  };
-
-  const isAdmin = () => hasRole('ROLE_ADMIN');
-  const isUser = () => hasRole('ROLE_USER');
-
-  return {
-    account,
-    profile,
-    isAuthenticated,
-    isLoading,
-    hasRole,
-    hasAnyAuthority,
-    isAdmin,
-    isUser,
-    currentUser: account,
-  };
-}
-
-export function useActivateAccount() {
-  const navigate = useNavigate();
+export function useRefreshToken() {
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (key: string) => authApi.activateAccount(key),
-    onSuccess: () => {
-      toast({
-        title: 'Compte activé',
-        description: 'Votre compte a été activé avec succès. Vous pouvez maintenant vous connecter.',
-      });
-      navigate('/login');
+    mutationFn: () => authApi.refreshToken(),
+    onSuccess: (response) => {
+      // Update the stored token
+      const isRemembered = localStorage.getItem('auth_token');
+      if (isRemembered) {
+        localStorage.setItem('auth_token', response.token);
+      } else {
+        sessionStorage.setItem('auth_token', response.token);
+      }
+
+      // Update the query cache with user data
+      queryClient.setQueryData(['auth', 'current-user'], response.user);
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Erreur d\'activation',
-        description: error.response?.data?.message || 'Le lien d\'activation est invalide ou expiré',
-        variant: 'destructive',
-      });
+    onError: () => {
+      // Clear tokens and redirect to login
+      localStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_token');
+      queryClient.clear();
+      window.location.href = '/login';
     },
   });
 }
@@ -170,13 +143,13 @@ export function useRequestPasswordReset() {
     onSuccess: () => {
       toast({
         title: 'Email envoyé',
-        description: 'Un email de réinitialisation a été envoyé à votre adresse.',
+        description: 'Un email de réinitialisation a été envoyé à votre adresse',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.response?.data?.message || 'Une erreur est survenue',
+        description: error.message || 'Une erreur est survenue',
         variant: 'destructive',
       });
     },
@@ -187,21 +160,50 @@ export function useResetPassword() {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: ({ key, newPassword }: { key: string; newPassword: string }) =>
-      authApi.resetPassword(key, newPassword),
+    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
+      authApi.resetPassword(token, newPassword),
     onSuccess: () => {
       toast({
         title: 'Mot de passe réinitialisé',
-        description: 'Votre mot de passe a été réinitialisé avec succès.',
+        description: 'Votre mot de passe a été mis à jour avec succès',
       });
+
+      // Redirect to login page
       navigate('/login');
     },
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.response?.data?.message || 'Le lien de réinitialisation est invalide ou expiré',
+        description: error.message || 'Une erreur est survenue lors de la réinitialisation',
         variant: 'destructive',
       });
     },
   });
+}
+
+// Helper hook to check if user is authenticated
+export function useIsAuthenticated() {
+  const { data: user, isLoading } = useCurrentUser();
+  return {
+    isAuthenticated: !!user,
+    isLoading,
+    user,
+  };
+}
+
+// Helper hook to check if user has a specific role
+export function useHasRole(role: string) {
+  const { data: user } = useCurrentUser();
+  return user?.authorities?.includes(role) || false;
+}
+
+// Helper hook to check if user is admin
+export function useIsAdmin() {
+  return useHasRole('ROLE_ADMIN');
+}
+
+// Helper hook to check if user belongs to a company
+export function useIsCompanyUser() {
+  const { data: user } = useCurrentUser();
+  return !!user?.companyId;
 }

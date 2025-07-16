@@ -1,17 +1,18 @@
-import React, { createContext, ReactNode } from 'react';
-import { JhipsterUser, UserProfile, Company, UserRole } from '@/types/jhipster';
-import { useAuthStatus, useLogout } from '@/hooks/api/useAuth';
+import React, { createContext, ReactNode, useContext } from 'react';
+import { User, Company, UserRole } from '@/types';
+import { useIsAuthenticated, useLogout, useUpdateProfile } from '@/hooks/api/useAuth';
 
 interface AuthContextType {
-  currentUser: JhipsterUser | null;
-  profile: UserProfile | null;
+  currentUser: User | null;
   currentCompany: Company | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   hasRole: (role: string) => boolean;
   hasAnyAuthority: (authorities: string[]) => boolean;
   logout: () => void;
-  updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  updateProfile: (profile: Partial<User>) => Promise<void>;
+  isAdmin: boolean;
+  isCompanyUser: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -21,28 +22,40 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const { currentUser, profile, isAuthenticated, isLoading, hasRole, hasAnyAuthority } = useAuthStatus();
+  const { user: currentUser, isAuthenticated, isLoading } = useIsAuthenticated();
   const logoutMutation = useLogout();
+  const updateProfileMutation = useUpdateProfile();
 
   const logout = () => {
     logoutMutation.mutate();
   };
 
-  const updateProfile = async (profileData: Partial<UserProfile>) => {
-    // This will be implemented with API call
-    throw new Error('updateProfile not implemented yet');
+  const updateProfile = async (profileData: Partial<User>) => {
+    return updateProfileMutation.mutateAsync(profileData);
   };
+
+  const hasRole = (role: string): boolean => {
+    return currentUser?.authorities?.includes(role) || false;
+  };
+
+  const hasAnyAuthority = (authorities: string[]): boolean => {
+    return authorities.some(authority => hasRole(authority));
+  };
+
+  const isAdmin = hasRole('ROLE_ADMIN');
+  const isCompanyUser = !!currentUser?.companyId;
 
   const value: AuthContextType = {
     currentUser,
-    profile,
-    currentCompany: profile?.company || null,
+    currentCompany: currentUser?.company || null,
     isAuthenticated,
     isLoading,
     hasRole,
     hasAnyAuthority,
     logout,
     updateProfile,
+    isAdmin,
+    isCompanyUser,
   };
 
   return (
@@ -52,13 +65,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-export { AuthContext };
-
-// Export useAuth hook for backward compatibility
 export const useAuth = () => {
-  const context = React.useContext(AuthContext);
+  const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
+
+export default AuthContext;

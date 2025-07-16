@@ -1,110 +1,126 @@
+// Simplified Authentication Service - No DTOs, Direct Domain Types
+
 import axios from 'axios';
+import { LoginRequest, LoginResponse, User } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-export interface LoginRequest {
-  username: string;
-  password: string;
-  rememberMe?: boolean;
-}
-
-export interface LoginResponse {
-  id_token: string;
-}
-
-export interface UserAccount {
-  id: number;
-  login: string;
-  firstName?: string;
-  lastName?: string;
-  email: string;
-  activated: boolean;
-  langKey: string;
-  authorities: string[];
-  createdBy?: string;
-  createdDate?: string;
-  lastModifiedBy?: string;
-  lastModifiedDate?: string;
-}
-
 class AuthService {
-  private static instance: AuthService;
-  private token: string | null = null;
+  private axiosInstance;
 
-  private constructor() {
-    this.token = localStorage.getItem('id_token');
-  }
+  constructor() {
+    this.axiosInstance = axios.create({
+      baseURL: API_URL,
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  public static getInstance(): AuthService {
-    if (!AuthService.instance) {
-      AuthService.instance = new AuthService();
-    }
-    return AuthService.instance;
+    // Add request interceptor to include auth token
+    this.axiosInstance.interceptors.request.use(
+      (config) => {
+        const token = this.getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Add response interceptor to handle auth errors
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          this.logout();
+        }
+        return Promise.reject(error);
+      }
+    );
   }
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    try {
-      const response = await axios.post<LoginResponse>(`${API_URL}/api/authenticate`, credentials);
-      const { id_token } = response.data;
-      
+    const response = await this.axiosInstance.post<LoginResponse>('/api/auth/login', credentials);
+    
+    if (response.data.token) {
+      // Store token based on rememberMe preference
       if (credentials.rememberMe) {
-        localStorage.setItem('id_token', id_token);
+        localStorage.setItem('auth_token', response.data.token);
       } else {
-        sessionStorage.setItem('id_token', id_token);
+        sessionStorage.setItem('auth_token', response.data.token);
       }
-      
-      this.token = id_token;
-      return response.data;
-    } catch (error) {
-      throw new Error('Authentication failed');
-    }
-  }
-
-  async getAccount(): Promise<UserAccount> {
-    if (!this.token) {
-      throw new Error('No token available');
     }
     
-    try {
-      const response = await axios.get<UserAccount>(`${API_URL}/api/account`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`
-        }
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error('Failed to fetch account information');
-    }
+    return response.data;
   }
 
-  logout(): void {
-    localStorage.removeItem('id_token');
-    sessionStorage.removeItem('id_token');
-    this.token = null;
+  async getCurrentUser(): Promise<User> {
+    const response = await this.axiosInstance.get<User>('/api/auth/me');
+    return response.data;
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await this.axiosInstance.post('/api/auth/logout');
+    } catch (error) {
+      // Even if logout fails on server, clear local data
+      console.warn('Logout request failed:', error);
+    } finally {
+      // Clear tokens
+      localStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_token');
+    }
   }
 
   getToken(): string | null {
-    if (!this.token) {
-      this.token = localStorage.getItem('id_token') || sessionStorage.getItem('id_token');
-    }
-    return this.token;
+    return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
   }
 
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
 
-  hasRole(role: string): boolean {
-    // This would need to be implemented based on stored user data
-    // For now, return false as a placeholder
-    return false;
+  async refreshToken(): Promise<LoginResponse> {
+    const response = await this.axiosInstance.post<LoginResponse>('/api/auth/refresh');
+    
+    if (response.data.token) {
+      // Update stored token
+      const isRemembered = localStorage.getItem('auth_token');
+      if (isRemembered) {
+        localStorage.setItem('auth_token', response.data.token);
+      } else {
+        sessionStorage.setItem('auth_token', response.data.token);
+      }
+    }
+    
+    return response.data;
   }
 
-  hasAnyAuthority(authorities: string[]): boolean {
-    // This would need to be implemented based on stored user data
-    // For now, return false as a placeholder
-    return false;
+  async register(userData: {
+    login: string;
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+  }): Promise<User> {
+    const response = await this.axiosInstance.post<User>('/api/auth/register', userData);
+    return response.data;
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    await this.axiosInstance.post('/api/auth/reset-password', { email });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await this.axiosInstance.post('/api/auth/reset-password/confirm', {
+      token,
+      newPassword,
+    });
   }
 }
 
-export default AuthService.getInstance();
+export default new AuthService();

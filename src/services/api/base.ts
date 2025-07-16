@@ -1,5 +1,5 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { PaginatedResponse, SearchCriteria } from '@/types/jhipster';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { PaginatedResponse, SearchCriteria } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -22,7 +22,7 @@ export class BaseApiService {
     // Request interceptor to add auth token
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('id_token') || sessionStorage.getItem('id_token');
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -39,8 +39,8 @@ export class BaseApiService {
       (error) => {
         if (error.response?.status === 401 || error.response?.status === 403) {
           // Clear tokens and redirect to login
-          localStorage.removeItem('id_token');
-          sessionStorage.removeItem('id_token');
+          localStorage.removeItem('auth_token');
+          sessionStorage.removeItem('auth_token');
           window.location.href = '/login';
         }
         return Promise.reject(error);

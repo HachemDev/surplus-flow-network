@@ -18,7 +18,7 @@ import {
   Map as MapIcon
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { TransactionStatus } from '@/types/surplus';
+import { TransactionStatus } from '@/types';
 
 interface TrackingData {
   id: string;

@@ -3,7 +3,7 @@ import { toast } from '@/hooks/use-toast';
 import {
   productApi,
   companyApi,
-  userProfileApi,
+  userApi,
   requestApi,
   transactionApi,
   notificationApi,
@@ -14,7 +14,7 @@ import {
 import {
   Product,
   Company,
-  UserProfile,
+  User,
   Request,
   Transaction,
   Notification,
@@ -22,8 +22,14 @@ import {
   Message,
   CompanyStats,
   SearchCriteria,
-  PaginatedResponse
-} from '@/types/jhipster';
+  PaginatedResponse,
+  CreateProductData,
+  UpdateProductData,
+  CreateCompanyData,
+  UpdateCompanyData,
+  CreateRequestData,
+  UpdateRequestData
+} from '@/types';
 
 // Generic hooks for API operations
 export function useApiQuery<T>(
@@ -72,10 +78,20 @@ export function useProducts(criteria?: SearchCriteria) {
   );
 }
 
+export function useSearchProducts(criteria: SearchCriteria) {
+  return useApiQuery(
+    ['products', 'search', JSON.stringify(criteria)],
+    () => productApi.searchProducts(criteria),
+    {
+      staleTime: 2 * 60 * 1000, // 2 minutes
+    }
+  );
+}
+
 export function useMyProducts(criteria?: SearchCriteria) {
   return useApiQuery(
     ['products', 'my-products', JSON.stringify(criteria)],
-    () => productApi.findMyProducts(criteria)
+    () => productApi.getMyProducts(criteria)
   );
 }
 
@@ -94,7 +110,7 @@ export function useCreateProduct() {
   const queryClient = useQueryClient();
   
   return useApiMutation(
-    (product: Partial<Product>) => productApi.create(product),
+    (product: CreateProductData) => productApi.createProduct(product),
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -111,11 +127,11 @@ export function useUpdateProduct() {
   const queryClient = useQueryClient();
   
   return useApiMutation(
-    ({ id, product }: { id: number; product: Partial<Product> }) => 
-      productApi.update(id, product),
+    ({ id, product }: { id: number; product: UpdateProductData }) => 
+      productApi.updateProduct(id, product),
     {
       onSuccess: (_, { id }) => {
-        queryClient.invalidateQueries({ queryKey: ['products', id] });
+        queryClient.invalidateQueries({ queryKey: ['products', id.toString()] });
         queryClient.invalidateQueries({ queryKey: ['products'] });
         toast({
           title: 'Succès',
@@ -143,6 +159,24 @@ export function useDeleteProduct() {
   );
 }
 
+export function useUploadProductImages() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    ({ productId, files }: { productId: number; files: File[] }) => 
+      productApi.uploadProductImages(productId, files),
+    {
+      onSuccess: (_, { productId }) => {
+        queryClient.invalidateQueries({ queryKey: ['products', productId.toString()] });
+        toast({
+          title: 'Succès',
+          description: 'Images téléchargées avec succès',
+        });
+      },
+    }
+  );
+}
+
 // Company hooks
 export function useCompanies(criteria?: SearchCriteria) {
   return useApiQuery(
@@ -151,10 +185,17 @@ export function useCompanies(criteria?: SearchCriteria) {
   );
 }
 
+export function useSearchCompanies(criteria: SearchCriteria) {
+  return useApiQuery(
+    ['companies', 'search', JSON.stringify(criteria)],
+    () => companyApi.searchCompanies(criteria)
+  );
+}
+
 export function useMyCompany() {
   return useApiQuery(
     ['companies', 'my-company'],
-    () => companyApi.findMyCompany()
+    () => companyApi.getMyCompany()
   );
 }
 
@@ -168,11 +209,47 @@ export function useCompany(id: number) {
   );
 }
 
-// User Profile hooks
+export function useCreateCompany() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    (company: CreateCompanyData) => companyApi.createCompany(company),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['companies'] });
+        toast({
+          title: 'Succès',
+          description: 'Entreprise créée avec succès',
+        });
+      },
+    }
+  );
+}
+
+export function useUpdateCompany() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    ({ id, company }: { id: number; company: UpdateCompanyData }) => 
+      companyApi.updateCompany(id, company),
+    {
+      onSuccess: (_, { id }) => {
+        queryClient.invalidateQueries({ queryKey: ['companies', id.toString()] });
+        queryClient.invalidateQueries({ queryKey: ['companies'] });
+        toast({
+          title: 'Succès',
+          description: 'Entreprise mise à jour avec succès',
+        });
+      },
+    }
+  );
+}
+
+// User hooks
 export function useMyProfile() {
   return useApiQuery(
-    ['user-profile', 'me'],
-    () => userProfileApi.getMyProfile()
+    ['users', 'my-profile'],
+    () => userApi.getMyProfile()
   );
 }
 
@@ -180,13 +257,30 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
   
   return useApiMutation(
-    (profile: Partial<UserProfile>) => userProfileApi.updateMyProfile(profile),
+    (profile: Partial<User>) => userApi.updateMyProfile(profile),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['user-profile', 'me'] });
+        queryClient.invalidateQueries({ queryKey: ['users', 'my-profile'] });
         toast({
           title: 'Succès',
           description: 'Profil mis à jour avec succès',
+        });
+      },
+    }
+  );
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    (file: File) => userApi.uploadAvatar(file),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['users', 'my-profile'] });
+        toast({
+          title: 'Succès',
+          description: 'Avatar mis à jour avec succès',
         });
       },
     }
@@ -201,10 +295,27 @@ export function useRequests(criteria?: SearchCriteria) {
   );
 }
 
+export function useSearchRequests(criteria: SearchCriteria) {
+  return useApiQuery(
+    ['requests', 'search', JSON.stringify(criteria)],
+    () => requestApi.searchRequests(criteria)
+  );
+}
+
 export function useMyRequests(criteria?: SearchCriteria) {
   return useApiQuery(
     ['requests', 'my-requests', JSON.stringify(criteria)],
-    () => requestApi.findMyRequests(criteria)
+    () => requestApi.getMyRequests(criteria)
+  );
+}
+
+export function useRequest(id: number) {
+  return useApiQuery(
+    ['requests', id.toString()],
+    () => requestApi.findById(id),
+    {
+      enabled: !!id,
+    }
   );
 }
 
@@ -212,7 +323,7 @@ export function useCreateRequest() {
   const queryClient = useQueryClient();
   
   return useApiMutation(
-    (request: Partial<Request>) => requestApi.create(request),
+    (request: CreateRequestData) => requestApi.createRequest(request),
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['requests'] });
@@ -221,6 +332,35 @@ export function useCreateRequest() {
           description: 'Demande créée avec succès',
         });
       },
+    }
+  );
+}
+
+export function useUpdateRequest() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    ({ id, request }: { id: number; request: UpdateRequestData }) => 
+      requestApi.updateRequest(id, request),
+    {
+      onSuccess: (_, { id }) => {
+        queryClient.invalidateQueries({ queryKey: ['requests', id.toString()] });
+        queryClient.invalidateQueries({ queryKey: ['requests'] });
+        toast({
+          title: 'Succès',
+          description: 'Demande mise à jour avec succès',
+        });
+      },
+    }
+  );
+}
+
+export function useMatchingProducts(requestId: number) {
+  return useApiQuery(
+    ['requests', requestId.toString(), 'matches'],
+    () => requestApi.findMatchingProducts(requestId),
+    {
+      enabled: !!requestId,
     }
   );
 }
@@ -236,7 +376,34 @@ export function useTransactions(criteria?: SearchCriteria) {
 export function useMyTransactions(criteria?: SearchCriteria) {
   return useApiQuery(
     ['transactions', 'my-transactions', JSON.stringify(criteria)],
-    () => transactionApi.findMyTransactions(criteria)
+    () => transactionApi.getMyTransactions(criteria)
+  );
+}
+
+export function useTransaction(id: number) {
+  return useApiQuery(
+    ['transactions', id.toString()],
+    () => transactionApi.findById(id),
+    {
+      enabled: !!id,
+    }
+  );
+}
+
+export function useCreateTransaction() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    (transaction: Partial<Transaction>) => transactionApi.createTransaction(transaction),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        toast({
+          title: 'Succès',
+          description: 'Transaction créée avec succès',
+        });
+      },
+    }
   );
 }
 
@@ -275,11 +442,64 @@ export function useRejectTransaction() {
   );
 }
 
+export function useCompleteTransaction() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    (id: number) => transactionApi.completeTransaction(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        toast({
+          title: 'Succès',
+          description: 'Transaction complétée',
+        });
+      },
+    }
+  );
+}
+
+export function useCancelTransaction() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    ({ id, reason }: { id: number; reason?: string }) =>
+      transactionApi.cancelTransaction(id, reason),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        toast({
+          title: 'Transaction annulée',
+          description: 'La transaction a été annulée',
+        });
+      },
+    }
+  );
+}
+
+export function useRateTransaction() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    ({ id, rating, review }: { id: number; rating: number; review?: string }) =>
+      transactionApi.rateTransaction(id, rating, review),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        toast({
+          title: 'Succès',
+          description: 'Évaluation enregistrée',
+        });
+      },
+    }
+  );
+}
+
 // Notification hooks
 export function useMyNotifications(criteria?: SearchCriteria) {
   return useApiQuery(
     ['notifications', 'my-notifications', JSON.stringify(criteria)],
-    () => notificationApi.findMyNotifications(criteria),
+    () => notificationApi.getMyNotifications(criteria),
     {
       refetchInterval: 30000, // Poll every 30 seconds
     }
@@ -309,11 +529,28 @@ export function useMarkNotificationAsRead() {
   );
 }
 
+export function useMarkAllNotificationsAsRead() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    () => notificationApi.markAllAsRead(),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        toast({
+          title: 'Succès',
+          description: 'Toutes les notifications ont été marquées comme lues',
+        });
+      },
+    }
+  );
+}
+
 // Favorite hooks
 export function useMyFavorites(criteria?: SearchCriteria) {
   return useApiQuery(
     ['favorites', 'my-favorites', JSON.stringify(criteria)],
-    () => favoriteApi.findMyFavorites(criteria)
+    () => favoriteApi.getMyFavorites(criteria)
   );
 }
 
@@ -338,13 +575,69 @@ export function useToggleFavorite() {
   );
 }
 
+export function useIsFavorite(productId: number) {
+  return useApiQuery(
+    ['favorites', 'is-favorite', productId.toString()],
+    () => favoriteApi.isFavorite(productId),
+    {
+      enabled: !!productId,
+    }
+  );
+}
+
+// Message hooks
+export function useMyMessages(criteria?: SearchCriteria) {
+  return useApiQuery(
+    ['messages', 'my-messages', JSON.stringify(criteria)],
+    () => messageApi.getMyMessages(criteria)
+  );
+}
+
+export function useConversation(userId: number, criteria?: SearchCriteria) {
+  return useApiQuery(
+    ['messages', 'conversation', userId.toString(), JSON.stringify(criteria)],
+    () => messageApi.getConversation(userId, criteria),
+    {
+      enabled: !!userId,
+    }
+  );
+}
+
+export function useSendMessage() {
+  const queryClient = useQueryClient();
+  
+  return useApiMutation(
+    ({ recipientId, content, subject }: { recipientId: number; content: string; subject?: string }) =>
+      messageApi.sendMessage(recipientId, content, subject),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['messages'] });
+        toast({
+          title: 'Succès',
+          description: 'Message envoyé avec succès',
+        });
+      },
+    }
+  );
+}
+
 // Company Stats hooks
 export function useCompanyStats(companyId: number) {
   return useApiQuery(
     ['company-stats', companyId.toString()],
-    () => companyStatsApi.getStatsByCompany(companyId),
+    () => companyApi.getCompanyStats(companyId),
     {
       enabled: !!companyId,
+    }
+  );
+}
+
+export function useCompanyStatsByPeriod(companyId: number, year: number, month?: number) {
+  return useApiQuery(
+    ['company-stats', 'period', companyId.toString(), year.toString(), month?.toString()],
+    () => companyStatsApi.getStatsByPeriod(companyId, year, month),
+    {
+      enabled: !!companyId && !!year,
     }
   );
 }
