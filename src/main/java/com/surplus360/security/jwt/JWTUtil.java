@@ -71,32 +71,36 @@ public class JWTUtil {
     }
 
     public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
+            .build()
             .parseClaimsJws(token)
             .getBody();
         return claims.getSubject();
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
+            .build()
             .parseClaimsJws(token)
             .getBody();
         return claims.get(USER_ID_KEY, Long.class);
     }
 
     public String getAuthoritiesFromToken(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
+            .build()
             .parseClaimsJws(token)
             .getBody();
         return claims.get(AUTHORITIES_KEY, String.class);
     }
 
     public Date getExpirationDateFromToken(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
+            .build()
             .parseClaimsJws(token)
             .getBody();
         return claims.getExpiration();
@@ -114,8 +118,9 @@ public class JWTUtil {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
+            Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
+                .build()
                 .parseClaimsJws(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
