@@ -28,7 +28,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: false,
   user: null,
-  token: localStorage.getItem('authToken') || sessionStorage.getItem('authToken'),
+  token: localStorage.getItem('id_token') || sessionStorage.getItem('id_token'),
   error: null,
   sessionHasBeenFetched: false,
 };
@@ -42,17 +42,22 @@ if (!initialState.token) {
 // Async thunks
 export const authenticate = createAsyncThunk(
   'auth/authenticate',
-  async (credentials: { email: string; password: string; rememberMe?: boolean }) => {
-    const response = await axios.post('/authenticate', credentials);
-    const { token, user } = response.data;
+  async (credentials: { username: string; password: string; rememberMe?: boolean }) => {
+    const response = await axios.post('/api/authenticate', credentials);
+    const { id_token } = response.data;
+    // Get user info separately since backend doesn't return user in login response
+    const userResponse = await axios.get('/api/account', {
+      headers: { Authorization: `Bearer ${id_token}` }
+    });
+    const user = userResponse.data;
     
-    if (credentials.rememberMe) {
-      localStorage.setItem('authToken', token);
-    } else {
-      sessionStorage.setItem('authToken', token);
-    }
-    
-    return { token, user };
+          if (credentials.rememberMe) {
+        localStorage.setItem('id_token', id_token);
+      } else {
+        sessionStorage.setItem('id_token', id_token);
+      }
+      
+      return { token: id_token, user };
   }
 );
 
@@ -66,7 +71,7 @@ export const register = createAsyncThunk(
     companyName?: string;
     role: string;
   }) => {
-    const response = await axios.post('/register', userInfo);
+    const response = await axios.post('/api/register', userInfo);
     return response.data;
   }
 );
@@ -74,7 +79,7 @@ export const register = createAsyncThunk(
 export const getSession = createAsyncThunk(
   'auth/getSession',
   async () => {
-    const response = await axios.get('/account');
+    const response = await axios.get('/api/account');
     return response.data;
   }
 );
@@ -82,8 +87,8 @@ export const getSession = createAsyncThunk(
 export const logout = createAsyncThunk(
   'auth/logout',
   async () => {
-    localStorage.removeItem('authToken');
-    sessionStorage.removeItem('authToken');
+    localStorage.removeItem('id_token');
+    sessionStorage.removeItem('id_token');
     return null;
   }
 );
@@ -98,8 +103,8 @@ const authSlice = createSlice({
       state.token = null;
       state.error = null;
       state.sessionHasBeenFetched = true;
-      localStorage.removeItem('authToken');
-      sessionStorage.removeItem('authToken');
+      localStorage.removeItem('id_token');
+      sessionStorage.removeItem('id_token');
     },
     clearAuthError: (state) => {
       state.error = null;

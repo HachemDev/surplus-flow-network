@@ -78,13 +78,10 @@ export class BaseApiService {
     
     if (criteria.page !== undefined) params.append('page', criteria.page.toString());
     if (criteria.size !== undefined) params.append('size', criteria.size.toString());
-    if (criteria.sort) criteria.sort.forEach(s => params.append('sort', s));
-    if (criteria.category) params.append('category.equals', criteria.category);
-    if (criteria.status) params.append('status.equals', criteria.status);
-    if (criteria.location) params.append('location.contains', criteria.location);
-    if (criteria.minPrice !== undefined) params.append('salePrice.greaterThanOrEqual', criteria.minPrice.toString());
-    if (criteria.maxPrice !== undefined) params.append('salePrice.lessThanOrEqual', criteria.maxPrice.toString());
-    if (criteria.searchTerm) params.append('title.contains', criteria.searchTerm);
+    if (criteria.sort) params.append('sort', criteria.sort);
+    if (criteria.search) params.append('search', criteria.search);
+    if (criteria.filters?.category) params.append('category', criteria.filters.category);
+    if (criteria.filters?.location) params.append('location', criteria.filters.location);
     
     return params;
   }

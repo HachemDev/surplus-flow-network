@@ -29,7 +29,7 @@ const AppRoutes: React.FC = () => {
   useEffect(() => {
     // Always attempt to fetch session if we haven't tried yet
     if (!sessionHasBeenFetched) {
-      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const token = localStorage.getItem('id_token') || sessionStorage.getItem('id_token');
       if (token) {
         console.log('Token found, fetching session...');
         dispatch(getSession());
