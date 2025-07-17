@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: surplus-mysql
+    environment:
+      MYSQL_DATABASE: surplus_db
+      MYSQL_USER: surplus_user
+      MYSQL_PASSWORD: surplus_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql
+    networks:
+      - surplus-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Spring Boot Backend
+  backend:
+    build: ./backend
+    container_name: surplus-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/surplus_db
+      SPRING_DATASOURCE_USERNAME: surplus_user
+      SPRING_DATASOURCE_PASSWORD: surplus_password
+      JWT_SECRET: mySecretKey123456789012345678901234567890123456789012345678901234567890
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - surplus-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # React Frontend (optional - if you want to containerize frontend too)
+  frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: surplus-frontend
+    environment:
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - surplus-network
+
+volumes:
+  mysql_data:
+
+networks:
+  surplus-network:
+    driver: bridge
