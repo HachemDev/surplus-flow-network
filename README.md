@@ -1,50 +1,191 @@
 # Surplus Management Full-Stack Application
 
-A complete full-stack application for managing surplus products with React frontend and Spring Boot backend.
+A complete monolithic full-stack application for managing surplus products with React frontend integrated into a Spring Boot backend.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Java 17+** (for backend)
-- **Node.js 18+** (for frontend)
-- **MySQL 8.0+** (for database)
-- **Maven 3.6+** (for backend build)
+- **Java 17+** (required)
+- **Maven 3.6+** (optional - Maven wrapper included)
+- **Node.js 18+** (for frontend development)
+- **MySQL 8.0+** (for production database)
 
-### Backend Setup
+### Running the Application
 
-The backend is a Spring Boot application that can be easily run using Maven:
+The application is now structured as a **monolithic Spring Boot application** with Maven configuration at the root level.
 
+#### Development Mode (Backend Only)
 ```bash
-cd backend
-
 # Option 1: Using convenient scripts
-./run-dev.sh          # Development mode with hot reload
-./run-debug.sh        # Debug mode (remote debugging on port 5005)
-./run-prod.sh         # Production mode
+./run-dev.sh
 
-# Option 2: Using Maven directly
-./mvnw spring-boot:run -Pdev           # Development mode
-./mvnw spring-boot:run -Pdebug         # Debug mode
-./mvnw clean package -Pprod            # Build for production
+# Option 2: Using Maven wrapper directly
+./mvnw spring-boot:run -Pdev
 
-# Option 3: Using Make (if available)
-make dev              # Development mode
-make debug            # Debug mode
-make prod             # Production mode
+# Option 3: Using Make
+make dev
 ```
 
-**Available endpoints:**
+#### Full-Stack Development (Frontend + Backend)
+```bash
+# Terminal 1: Start backend
+./run-dev.sh
+
+# Terminal 2: Start frontend dev server
+npm run dev
+```
+
+#### Debug Mode (Remote Debugging)
+```bash
+# Using script
+./run-debug.sh
+
+# Using Maven directly
+./mvnw spring-boot:run -Pdebug
+```
+
+#### Production Mode (Full-Stack Build)
+```bash
+# Using script (builds frontend automatically)
+./run-prod.sh
+
+# Using Maven directly
+./mvnw clean package -Pprod
+java -jar target/surplus-management-1.0.0.jar
+```
+
+### Available Endpoints
+
+When running:
 - **Application**: http://localhost:8080
 - **API Documentation**: http://localhost:8080/swagger-ui.html
 - **Health Check**: http://localhost:8080/actuator/health
+- **Frontend (dev)**: http://localhost:5173 (if running separately)
 
-For detailed backend documentation, see [backend/README.md](backend/README.md)
+## 📁 Project Structure
 
-### Frontend Setup
+```
+surplus-management/
+├── src/
+│   ├── main/
+│   │   ├── java/com/surplus/          # Spring Boot backend code
+│   │   │   ├── SurplusBackendApplication.java
+│   │   │   ├── controller/             # REST controllers
+│   │   │   ├── entity/                 # JPA entities
+│   │   │   ├── repository/             # Data repositories
+│   │   │   ├── service/                # Business logic
+│   │   │   └── dto/                    # Data transfer objects
+│   │   └── resources/
+│   │       ├── application.yml         # Main configuration
+│   │       ├── application-dev.yml     # Development config
+│   │       ├── application-prod.yml    # Production config
+│   │       └── static/                 # Frontend build output (prod)
+│   └── test/                           # Test classes
+├── src/                                # Frontend React source (root level)
+├── public/                             # Frontend public assets
+├── dist/                               # Frontend build output
+├── pom.xml                             # Maven configuration (ROOT LEVEL)
+├── mvnw, mvnw.cmd                      # Maven wrapper
+├── package.json                        # Frontend dependencies
+├── run-dev.sh                          # Development script
+├── run-debug.sh                        # Debug script
+├── run-prod.sh                         # Production script
+├── Makefile                            # Make commands
+└── README.md                           # This file
+```
+
+## 🔧 Development
+
+### Maven Profiles
+
+- **dev** (default): Development mode with hot reload
+- **debug**: Development mode with remote debugging on port 5005
+- **prod**: Production mode with frontend build integration
+
+### Available Commands
+
+#### Maven Commands
 ```bash
-cd frontend  # or wherever your React app is located
-npm install
-npm run dev
+# Development
+./mvnw spring-boot:run -Pdev
+
+# Debug mode
+./mvnw spring-boot:run -Pdebug
+
+# Production build (includes frontend)
+./mvnw clean package -Pprod
+
+# Run tests
+./mvnw test
+
+# Clean
+./mvnw clean
+```
+
+#### Make Commands
+```bash
+make dev        # Start backend in development mode
+make debug      # Start backend in debug mode
+make prod       # Build and run full-stack in production
+make test       # Run backend tests
+make clean      # Clean all build artifacts
+make frontend   # Start frontend development server
+make setup      # Install all dependencies
+```
+
+#### NPM Commands (Frontend)
+```bash
+npm install     # Install frontend dependencies
+npm run dev     # Start frontend development server
+npm run build   # Build frontend for production
+npm run preview # Preview production build
+```
+
+## 🐛 Debugging
+
+### Remote Debugging Setup
+
+The application supports remote debugging on port 5005:
+
+**IntelliJ IDEA:**
+1. Run → Edit Configurations
+2. Add "Remote JVM Debug"
+3. Host: `localhost`, Port: `5005`
+
+**VS Code:**
+1. Use the provided `.vscode/launch.json`
+2. Select "Debug Surplus Management (Remote)"
+
+**Eclipse:**
+1. Run → Debug Configurations
+2. Create "Remote Java Application"
+3. Host: `localhost`, Port: `5005`
+
+## 📦 Production Deployment
+
+### Building for Production
+
+The production build automatically:
+1. Installs Node.js and npm
+2. Installs frontend dependencies
+3. Builds the React frontend
+4. Copies frontend build to Spring Boot static resources
+5. Creates a single executable JAR
+
+```bash
+./mvnw clean package -Pprod
+java -jar target/surplus-management-1.0.0.jar
+```
+
+### Docker Deployment
+
+```bash
+# Build the application
+./mvnw clean package -Pprod
+
+# Run with Docker (if Dockerfile exists)
+docker build -t surplus-management .
+docker run -p 8080:8080 surplus-management
 ```
 
 ## 📋 Features
@@ -72,224 +213,84 @@ npm run dev
 ### 💼 Transaction Management
 - Create transactions for products
 - Transaction status workflow (PENDING, ACCEPTED, IN_TRANSIT, DELIVERED, COMPLETED, CANCELLED)
+- Email notifications for status changes
 - Transaction history and tracking
-- Buyer and seller management
 
-### 🔔 Notification System
-- Real-time notifications for users
-- Different notification types (SURPLUS_MATCH, TRANSACTION_UPDATE, DELIVERY_UPDATE, SYSTEM, NEW_REQUEST)
-- Mark notifications as read
-- Notification history
+### 🎨 Frontend Features
+- Modern React UI with TypeScript
+- Responsive design with Tailwind CSS
+- Real-time updates
+- Interactive dashboards
+- Mobile-friendly interface
 
-### 📊 Dashboard & Analytics
-- User dashboard with statistics
-- Company performance metrics
-- Transaction analytics
-- Product view counts and interests
+## 🗄️ Database Configuration
 
-## 🏗️ Architecture
+### Development
+Uses H2 in-memory database by default for development.
 
-### Backend (Spring Boot)
-```
-backend/
-├── src/main/java/com/surplus/
-│   ├── domain/           # JPA entities
-│   ├── repository/       # Data access layer
-│   ├── service/          # Business logic
-│   ├── controller/       # REST endpoints
-│   ├── security/         # Security configuration
-│   ├── config/           # Application configuration
-│   └── exception/        # Exception handling
-├── src/main/resources/
-│   ├── application.yml   # Configuration
-│   └── data.sql         # Initial data
-└── pom.xml              # Maven dependencies
-```
+### Production
+Configure MySQL connection in `src/main/resources/application-prod.yml`:
 
-### Frontend (React + TypeScript)
-```
-src/
-├── components/          # Reusable UI components
-├── pages/              # Page components
-├── services/           # API services
-├── types/              # TypeScript types
-├── hooks/              # Custom React hooks
-├── contexts/           # React contexts
-├── lib/                # Utility functions
-└── app/                # Application configuration
-```
-
-## 🔧 API Endpoints
-
-### Authentication
-- `POST /api/authenticate` - User login
-- `POST /api/register` - User registration
-- `GET /api/account` - Get current user info
-
-### Products
-- `GET /api/products/my-products` - Get user's products
-- `GET /api/products/search` - Search products
-- `POST /api/products` - Create product
-- `GET /api/products/{id}` - Get product by ID
-- `PUT /api/products/{id}` - Update product
-- `DELETE /api/products/{id}` - Delete product
-- `POST /api/products/{id}/view` - Increment view count
-
-### Transactions
-- `GET /api/transactions/my-transactions` - Get user's transactions
-- `POST /api/transactions` - Create transaction
-- `POST /api/transactions/{id}/accept` - Accept transaction
-- `POST /api/transactions/{id}/reject` - Reject transaction
-- `POST /api/transactions/{id}/complete` - Complete transaction
-- `POST /api/transactions/{id}/cancel` - Cancel transaction
-
-### Companies
-- `GET /api/companies/my-company` - Get user's company
-- `POST /api/companies` - Create company
-- `PUT /api/companies/{id}` - Update company
-- `GET /api/companies/{id}/stats` - Get company statistics
-
-### Notifications
-- `GET /api/notifications/my-notifications` - Get user's notifications
-- `POST /api/notifications/{id}/read` - Mark notification as read
-- `POST /api/notifications/mark-all-read` - Mark all as read
-- `GET /api/notifications/unread-count` - Get unread count
-
-### User Profiles
-- `GET /api/user-profiles/me` - Get current user profile
-- `PUT /api/user-profiles/me` - Update current user profile
-
-## 🛠️ Development
-
-### Backend Development
-```bash
-cd backend
-mvn spring-boot:run
-```
-
-The backend will be available at `http://localhost:8080`
-
-### Frontend Development
-```bash
-cd frontend
-npm run dev
-```
-
-The frontend will be available at `http://localhost:3000` or `http://localhost:5173`
-
-### Database Management
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **H2 Console** (dev): `http://localhost:8080/h2-console`
-- **Actuator Health**: `http://localhost:8080/actuator/health`
-
-## 🔒 Security Configuration
-
-### JWT Configuration
 ```yaml
-application:
-  jwt:
-    secret: your-secret-key-here
-    token-validity-in-seconds: 86400
-    token-validity-in-seconds-for-remember-me: 2592000
-```
-
-### Database Security
-- Separate database user with limited privileges
-- Encrypted password storage
-- SQL injection protection through JPA
-
-### CORS Configuration
-```yaml
-application:
-  cors:
-    allowed-origins: 
-      - http://localhost:3000
-      - http://localhost:5173
-    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
-    allowed-headers: "*"
-    allow-credentials: true
-```
-
-## 📊 Database Schema
-
-### Core Tables
-- `users` - User authentication data
-- `authority` - User roles and permissions
-- `user_profile` - Extended user information
-- `company` - Company information
-- `product` - Product listings
-- `transaction` - Transaction records
-- `notification` - User notifications
-
-### Relationships
-- Users have UserProfiles (1:1)
-- Users can belong to Companies (N:1)
-- Users own Products (1:N)
-- Products have Transactions (1:N)
-- Users receive Notifications (1:N)
-
-## 🚀 Production Deployment
-
-### Environment Variables
-```bash
-export JWT_SECRET=your-production-secret-key
-export MYSQL_URL=jdbc:mysql://your-db-host:3306/surplus_db
-export MYSQL_USERNAME=your-db-user
-export MYSQL_PASSWORD=your-db-password
-export MAIL_USERNAME=your-email@domain.com
-export MAIL_PASSWORD=your-email-password
-```
-
-### Build for Production
-```bash
-# Backend
-cd backend
-mvn clean package -Pprod
-
-# Frontend
-cd frontend
-npm run build
-```
-
-### Docker Deployment
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/surplus_db
+    username: ${DB_USERNAME:surplus_user}
+    password: ${DB_PASSWORD:surplus_password}
 ```
 
 ## 🧪 Testing
 
-### Backend Tests
 ```bash
-cd backend
-mvn test
+# Run all tests
+./mvnw test
+
+# Run specific test class
+./mvnw test -Dtest=UserControllerTest
+
+# Run tests with coverage
+./mvnw test jacoco:report
 ```
 
-### Frontend Tests
+## 📝 Common Issues
+
+### Port Already in Use
 ```bash
-cd frontend
-npm test
+./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=8090"
 ```
 
-## 📝 License
+### Java Version Issues
+```bash
+java -version  # Should be 17+
+echo $JAVA_HOME
+```
 
-This project is licensed under the MIT License.
+### Frontend Build Issues
+```bash
+npm install    # Reinstall dependencies
+npm run build  # Test frontend build
+```
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+3. Make your changes
+4. Run tests: `./mvnw test`
+5. Submit a pull request
 
-## 📞 Support
+## 📄 License
 
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation in `/docs`
+This project is licensed under the MIT License.
 
 ---
 
-**Built with ❤️ using Spring Boot, React, and modern web technologies**
+## 🎯 Key Benefits of This Structure
+
+1. **Monolithic Architecture**: Single deployable unit
+2. **Maven at Root**: Standard Maven project structure
+3. **Integrated Frontend**: Frontend built and served by Spring Boot
+4. **Multiple Run Options**: Scripts, Maven, Make commands
+5. **Development Friendly**: Hot reload, debugging, separate dev servers
+6. **Production Ready**: Single JAR deployment with embedded frontend
+7. **Cross-Platform**: Works on Windows, macOS, Linux
