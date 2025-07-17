@@ -11,10 +11,34 @@ A complete full-stack application for managing surplus products with React front
 - **Maven 3.6+** (for backend build)
 
 ### Backend Setup
+
+The backend is a Spring Boot application that can be easily run using Maven:
+
 ```bash
 cd backend
-./run-setup.sh
+
+# Option 1: Using convenient scripts
+./run-dev.sh          # Development mode with hot reload
+./run-debug.sh        # Debug mode (remote debugging on port 5005)
+./run-prod.sh         # Production mode
+
+# Option 2: Using Maven directly
+./mvnw spring-boot:run -Pdev           # Development mode
+./mvnw spring-boot:run -Pdebug         # Debug mode
+./mvnw clean package -Pprod            # Build for production
+
+# Option 3: Using Make (if available)
+make dev              # Development mode
+make debug            # Debug mode
+make prod             # Production mode
 ```
+
+**Available endpoints:**
+- **Application**: http://localhost:8080
+- **API Documentation**: http://localhost:8080/swagger-ui.html
+- **Health Check**: http://localhost:8080/actuator/health
+
+For detailed backend documentation, see [backend/README.md](backend/README.md)
 
 ### Frontend Setup
 ```bash

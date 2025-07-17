@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug Surplus Backend",
+            "request": "launch",
+            "mainClass": "com.surplus.SurplusBackendApplication",
+            "projectName": "surplus-backend",
+            "args": "--spring.profiles.active=dev",
+            "vmArgs": "-Dserver.port=8080",
+            "env": {
+                "SPRING_PROFILES_ACTIVE": "dev"
+            }
+        },
+        {
+            "type": "java",
+            "name": "Debug Surplus Backend (Remote)",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005,
+            "projectName": "surplus-backend"
+        },
+        {
+            "type": "java",
+            "name": "Run Tests",
+            "request": "launch",
+            "mainClass": "",
+            "projectName": "surplus-backend",
+            "args": "",
+            "vmArgs": "-Dspring.profiles.active=test"
+        }
+    ]
+}
